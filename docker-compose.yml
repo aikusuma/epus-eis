@@ -1,0 +1,53 @@
+version: '3.8'
+
+services:
+  # PostgreSQL - Operational & ACL database
+  postgres:
+    image: postgres:16-alpine
+    container_name: epus-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: epus_user
+      POSTGRES_PASSWORD: epus_password
+      POSTGRES_DB: epus_eis
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U epus_user -d epus_eis']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ClickHouse - Analytics database
+  clickhouse:
+    image: clickhouse/clickhouse-server:24.1
+    container_name: epus-clickhouse
+    restart: unless-stopped
+    environment:
+      CLICKHOUSE_USER: epus_user
+      CLICKHOUSE_PASSWORD: epus_password
+      CLICKHOUSE_DB: epus_analytics
+      CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT: 1
+    ports:
+      - '8123:8123' # HTTP interface
+      - '9000:9000' # Native interface
+    volumes:
+      - clickhouse_data:/var/lib/clickhouse
+      - clickhouse_logs:/var/log/clickhouse-server
+      - ./docker/clickhouse/init:/docker-entrypoint-initdb.d
+    ulimits:
+      nofile:
+        soft: 262144
+        hard: 262144
+    healthcheck:
+      test: ['CMD', 'wget', '--spider', '-q', 'http://localhost:8123/ping']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:
+  clickhouse_data:
+  clickhouse_logs:

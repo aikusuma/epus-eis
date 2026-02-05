@@ -1,0 +1,222 @@
+// Prisma schema for PostgreSQL - Operational & ACL database
+// This is the source of truth for users, roles, ACL, and master data
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// USER & ACCESS CONTROL
+// ============================================
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  username      String    @unique
+  passwordHash  String    @map("password_hash")
+  nama          String
+  nip           String?   @unique
+  jabatan       String?
+  telepon       String?
+  isActive      Boolean   @default(true) @map("is_active")
+  lastLoginAt   DateTime? @map("last_login_at")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  roleId      String      @map("role_id")
+  role        Role        @relation(fields: [roleId], references: [id])
+  puskesmasId String?     @map("puskesmas_id")
+  puskesmas   Puskesmas?  @relation(fields: [puskesmasId], references: [id])
+  wilayahId   String?     @map("wilayah_id")
+  wilayah     Wilayah?    @relation(fields: [wilayahId], references: [id])
+  auditLogs   AuditLog[]
+  sessions    Session[]
+
+  @@map("users")
+}
+
+model Role {
+  id          String   @id @default(cuid())
+  code        String   @unique // 'kepala_dinkes', 'kabid', 'kepala_puskesmas', 'staf'
+  name        String
+  description String?
+  level       Int      @default(0) // hierarchy level
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  users       User[]
+  permissions RolePermission[]
+
+  @@map("roles")
+}
+
+model Permission {
+  id          String   @id @default(cuid())
+  code        String   @unique // 'view_all_puskesmas', 'view_own_puskesmas', 'manage_users', etc.
+  name        String
+  description String?
+  module      String   // 'dashboard', 'puskesmas', 'users', 'reports', etc.
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  // Relations
+  roles RolePermission[]
+
+  @@map("permissions")
+}
+
+model RolePermission {
+  roleId       String     @map("role_id")
+  permissionId String     @map("permission_id")
+  createdAt    DateTime   @default(now()) @map("created_at")
+
+  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, permissionId])
+  @@map("role_permissions")
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  token     String   @unique
+  expiresAt DateTime @map("expires_at")
+  ipAddress String?  @map("ip_address")
+  userAgent String?  @map("user_agent")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+// ============================================
+// MASTER DATA - WILAYAH & PUSKESMAS
+// ============================================
+
+model Wilayah {
+  id             String   @id @default(cuid())
+  kodeKecamatan  String   @unique @map("kode_kecamatan")
+  namaKecamatan  String   @map("nama_kecamatan")
+  kodeKabupaten  String   @default("3329") @map("kode_kabupaten") // Brebes
+  namaKabupaten  String   @default("Brebes") @map("nama_kabupaten")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  puskesmas Puskesmas[]
+  users     User[]
+
+  @@map("wilayah")
+}
+
+model Puskesmas {
+  id             String   @id @default(cuid())
+  kodePuskesmas  String   @unique @map("kode_puskesmas")
+  namaPuskesmas  String   @map("nama_puskesmas")
+  alamat         String?
+  telepon        String?
+  email          String?
+  jenis          String   @default("non_rawat_inap") // 'rawat_inap', 'non_rawat_inap'
+  status         String   @default("aktif") // 'aktif', 'tidak_aktif'
+  latitude       Float?
+  longitude      Float?
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  wilayahId String  @map("wilayah_id")
+  wilayah   Wilayah @relation(fields: [wilayahId], references: [id])
+  users     User[]
+
+  @@map("puskesmas")
+}
+
+// ============================================
+// MASTER DATA - ICD-10
+// ============================================
+
+model Icd10 {
+  id              String   @id @default(cuid())
+  code            String   @unique
+  name            String
+  nameEn          String?  @map("name_en")
+  groupCode       String   @map("group_code") // 'ISPA', 'PNEUMONIA', 'HIPERTENSI', etc.
+  groupName       String   @map("group_name")
+  kategoriProgram String   @map("kategori_program") // 'PTM', 'menular', 'KIA', 'umum'
+  chapter         String?  // ICD-10 chapter (I-XXII)
+  blockRange      String?  @map("block_range")
+  isActive        Boolean  @default(true) @map("is_active")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  @@index([groupCode])
+  @@index([kategoriProgram])
+  @@map("icd10")
+}
+
+// ============================================
+// INGESTION LOG (Raw data from e-Puskesmas)
+// ============================================
+
+model IngestionLog {
+  id          String   @id @default(cuid())
+  eventType   String   @map("event_type") // 'kunjungan', 'diagnosis', 'program'
+  puskesmasId String   @map("puskesmas_id")
+  payload     Json     // Raw JSON payload
+  status      String   @default("pending") // 'pending', 'processed', 'failed'
+  errorMsg    String?  @map("error_msg")
+  processedAt DateTime? @map("processed_at")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@index([status])
+  @@index([eventType])
+  @@index([createdAt])
+  @@map("ingestion_logs")
+}
+
+// ============================================
+// AUDIT LOG
+// ============================================
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  userId     String?  @map("user_id")
+  action     String   // 'login', 'logout', 'view_dashboard', 'export_report', etc.
+  resource   String?  // 'dashboard', 'puskesmas', 'report', etc.
+  resourceId String?  @map("resource_id")
+  details    Json?    // Additional details
+  ipAddress  String?  @map("ip_address")
+  userAgent  String?  @map("user_agent")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  user User? @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([action])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
+
+// ============================================
+// SYSTEM CONFIG
+// ============================================
+
+model SystemConfig {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String
+  type      String   @default("string") // 'string', 'number', 'boolean', 'json'
+  module    String   @default("general")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("system_configs")
+}
