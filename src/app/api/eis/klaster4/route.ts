@@ -37,10 +37,10 @@ export async function GET(request: NextRequest) {
 
     // Calculate summary statistics - using correct property names
     const totalKasus = topDiagnosa.reduce(
-      (sum: number, item: any) => sum + (item.jumlah || 0),
+      (sum: number, item: any) => sum + (item.jumlahKasus || 0),
       0
     );
-    const diagnosaTertinggi = topDiagnosa[0]?.diagnosa || '-';
+    const diagnosaTertinggi = topDiagnosa[0]?.nama || '-';
     const kasusAkut = diagnosaTinggi.reduce(
       (sum: number, d: any) => sum + (d.jumlah || 0),
       0
