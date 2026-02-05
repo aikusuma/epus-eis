@@ -1,7 +1,7 @@
 import { NextResponse, NextRequest } from 'next/server';
 import { jwtVerify } from 'jose';
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Public routes that don't require auth
