@@ -81,9 +81,9 @@ export default function Klaster4Page() {
   const top12DiagnosaData = useMemo(() => {
     if (!data?.topDiagnosa) return [];
     return data.topDiagnosa.slice(0, 12).map((item: any) => ({
-      diagnosa: item.diagnosa,
-      kode: item.kode,
-      jumlah: item.jumlah,
+      diagnosa: item.nama || item.diagnosa,
+      kode: item.kodeIcd || item.kode,
+      jumlah: item.jumlahKasus || item.jumlah || 0,
       trend: 'stable' // Could be calculated from trend data if available
     }));
   }, [data?.topDiagnosa]);
@@ -91,9 +91,9 @@ export default function Klaster4Page() {
   const bahayaTinggiData = useMemo(() => {
     if (!data?.diagnosaBahaya?.tinggi) return [];
     return data.diagnosaBahaya.tinggi.map((item: any) => ({
-      diagnosa: item.diagnosa,
-      kode: item.kode,
-      jumlah: item.jumlah,
+      diagnosa: item.diagnosa || item.nama || '-',
+      kode: item.kode || item.kodeIcd || '-',
+      jumlah: item.jumlah || item.jumlahKasus || 0,
       severity: 'high'
     }));
   }, [data?.diagnosaBahaya]);
@@ -101,9 +101,9 @@ export default function Klaster4Page() {
   const bahayaSedangData = useMemo(() => {
     if (!data?.diagnosaBahaya?.sedang) return [];
     return data.diagnosaBahaya.sedang.map((item: any) => ({
-      diagnosa: item.diagnosa,
-      kode: item.kode,
-      jumlah: item.jumlah,
+      diagnosa: item.diagnosa || item.nama || '-',
+      kode: item.kode || item.kodeIcd || '-',
+      jumlah: item.jumlah || item.jumlahKasus || 0,
       severity: 'medium'
     }));
   }, [data?.diagnosaBahaya]);
@@ -111,9 +111,9 @@ export default function Klaster4Page() {
   const bahayaRendahData = useMemo(() => {
     if (!data?.diagnosaBahaya?.rendah) return [];
     return data.diagnosaBahaya.rendah.map((item: any) => ({
-      diagnosa: item.diagnosa,
-      kode: item.kode,
-      jumlah: item.jumlah,
+      diagnosa: item.diagnosa || item.nama || '-',
+      kode: item.kode || item.kodeIcd || '-',
+      jumlah: item.jumlah || item.jumlahKasus || 0,
       severity: 'low'
     }));
   }, [data?.diagnosaBahaya]);
@@ -206,7 +206,7 @@ export default function Klaster4Page() {
                     <CardHeader className='pb-2'>
                       <CardDescription>Total Kasus</CardDescription>
                       <CardTitle className='text-3xl'>
-                        {summary.totalKasus.toLocaleString()}
+                        {(summary.totalKasus || 0).toLocaleString()}
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
@@ -230,7 +230,7 @@ export default function Klaster4Page() {
                     <CardHeader className='pb-2'>
                       <CardDescription>Bahaya Tinggi</CardDescription>
                       <CardTitle className='text-3xl text-red-600'>
-                        {summary.kasusAkut.toLocaleString()}
+                        {(summary.kasusAkut || 0).toLocaleString()}
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
@@ -241,7 +241,7 @@ export default function Klaster4Page() {
                     <CardHeader className='pb-2'>
                       <CardDescription>Bahaya Rendah</CardDescription>
                       <CardTitle className='text-3xl text-green-600'>
-                        {summary.kasusRingan.toLocaleString()}
+                        {(summary.kasusRingan || 0).toLocaleString()}
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
