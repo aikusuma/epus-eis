@@ -288,8 +288,39 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const query = searchParams.get('q') || '';
     const icd10Id = searchParams.get('icd10Id');
-    const type = searchParams.get('type') || 'search'; // 'search', 'top', 'diagnoses', 'overall-trend'
+    const code = searchParams.get('code');
+    const type = searchParams.get('type') || 'search'; // 'search', 'top', 'diagnoses', 'overall-trend', 'by-code'
     const limit = parseInt(searchParams.get('limit') || '20');
+
+    // Get ICD-10 by code
+    if (type === 'by-code' && code) {
+      const icd10 = await prisma.icd10.findFirst({
+        where: {
+          code: { equals: code, mode: 'insensitive' }
+        },
+        include: {
+          _count: { select: { diagnoses: true } }
+        }
+      });
+
+      if (!icd10) {
+        return NextResponse.json({
+          success: false,
+          error: 'ICD-10 tidak ditemukan'
+        });
+      }
+
+      return NextResponse.json({
+        success: true,
+        data: {
+          id: icd10.id,
+          code: icd10.code,
+          display: icd10.display,
+          version: icd10.version,
+          _count: { diagnoses: icd10._count?.diagnoses || 0 }
+        }
+      });
+    }
 
     // Get overall disease trend for top 5 ICD-10
     if (type === 'overall-trend') {
