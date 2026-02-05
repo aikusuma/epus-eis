@@ -31,8 +31,6 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const limit = Math.min(parseInt(searchParams.get('limit') ?? '20'), 100);
     const period = searchParams.get('period') ?? 'month'; // 'week', 'month', 'year'
-    const kategori = searchParams.get('kategori'); // 'PTM', 'menular', 'KIA', 'umum'
-    const group = searchParams.get('group'); // 'ISPA', 'HIPERTENSI', etc.
 
     // Get filter based on user access
     const accessFilter = filterByUserAccess(user);
@@ -89,16 +87,12 @@ export async function GET(req: NextRequest) {
 
     const icd10Details = await db.icd10.findMany({
       where: {
-        code: { in: icd10Codes },
-        ...(kategori && { kategoriProgram: kategori }),
-        ...(group && { groupCode: group })
+        code: { in: icd10Codes }
       },
       select: {
         code: true,
-        name: true,
-        groupCode: true,
-        groupName: true,
-        kategoriProgram: true
+        display: true,
+        version: true
       }
     });
 
@@ -117,10 +111,8 @@ export async function GET(req: NextRequest) {
         const detail = icd10Map.get(d.icd10_code)!;
         return {
           icd10Code: d.icd10_code,
-          icd10Name: detail.name,
-          groupCode: detail.groupCode,
-          groupName: detail.groupName,
-          kategoriProgram: detail.kategoriProgram,
+          icd10Name: detail.display,
+          version: detail.version,
           totalKunjungan: Number(d.total_visits),
           distribusiGender: {
             lakiLaki: Number(d.male_count),
