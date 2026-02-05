@@ -256,7 +256,7 @@ export async function POST(req: NextRequest) {
         data: { status: 'processed', processedAt: new Date() }
       });
 
-      revalidateTag('klaster4');
+      revalidateTag('klaster4', '');
 
       return NextResponse.json({
         success: true,

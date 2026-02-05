@@ -452,7 +452,7 @@ async function ingestKlaster1(
     }
   }
 
-  revalidateTag('klaster1');
+  revalidateTag('klaster1', '');
 
   return {
     ok: true,
@@ -528,7 +528,7 @@ async function ingestKlaster2(
     }
   }
 
-  revalidateTag('klaster2');
+  revalidateTag('klaster2', '');
 
   return {
     ok: true,
@@ -640,7 +640,7 @@ async function ingestKlaster3(
     }
   }
 
-  revalidateTag('klaster3');
+  revalidateTag('klaster3', '');
 
   return {
     ok: true,
@@ -778,7 +778,7 @@ async function ingestLintasKlaster(
     }
   }
 
-  revalidateTag('lintas-klaster');
+  revalidateTag('lintas-klaster', '');
 
   return {
     ok: true,
@@ -911,13 +911,13 @@ export async function POST(req: NextRequest) {
           }
 
           results.push({
-            type: event.type,
+            type: (event as any).type,
             ok: false,
             error: 'Unsupported event type'
           });
         } catch (e) {
           results.push({
-            type: event.type,
+            type: (event as any).type,
             ok: false,
             error: e instanceof Error ? e.message : 'Unknown error'
           });
