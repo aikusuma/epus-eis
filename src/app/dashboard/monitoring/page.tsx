@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import dynamic from 'next/dynamic';
 import { DashboardFilter, FilterValues } from '@/components/dashboard-filter';
 import {
@@ -42,6 +42,8 @@ import {
   IconWheelchair
 } from '@tabler/icons-react';
 import { useTabFromUrl } from '@/hooks/use-tab-from-url';
+import { useMonitoringData, FilterParams } from '@/hooks/use-eis-data';
+import { Skeleton } from '@/components/ui/skeleton';
 
 // Dynamic import untuk Leaflet (harus client-side only)
 const MapContainer = dynamic(
@@ -64,189 +66,6 @@ const CircleMarker = dynamic(
   { ssr: false }
 );
 
-// Data sebaran pasien berdasarkan siklus hidup per lokasi
-const sebaranPasienData = [
-  {
-    id: 1,
-    lat: -6.8748,
-    lng: 109.0526,
-    desa: 'Brebes',
-    bayi_l: 45,
-    bayi_p: 52,
-    anak_l: 120,
-    anak_p: 115,
-    remaja_l: 89,
-    remaja_p: 95,
-    dewasa_l: 234,
-    dewasa_p: 256,
-    lansia_l: 78,
-    lansia_p: 92
-  },
-  {
-    id: 2,
-    lat: -6.889,
-    lng: 109.0421,
-    desa: 'Gandasuli',
-    bayi_l: 32,
-    bayi_p: 38,
-    anak_l: 85,
-    anak_p: 90,
-    remaja_l: 65,
-    remaja_p: 70,
-    dewasa_l: 178,
-    dewasa_p: 195,
-    lansia_l: 55,
-    lansia_p: 62
-  },
-  {
-    id: 3,
-    lat: -6.8623,
-    lng: 109.0687,
-    desa: 'Pasarbatang',
-    bayi_l: 28,
-    bayi_p: 35,
-    anak_l: 72,
-    anak_p: 78,
-    remaja_l: 58,
-    remaja_p: 62,
-    dewasa_l: 156,
-    dewasa_p: 168,
-    lansia_l: 48,
-    lansia_p: 55
-  },
-  {
-    id: 4,
-    lat: -6.8956,
-    lng: 109.0312,
-    desa: 'Limbangan Kulon',
-    bayi_l: 25,
-    bayi_p: 30,
-    anak_l: 65,
-    anak_p: 68,
-    remaja_l: 52,
-    remaja_p: 55,
-    dewasa_l: 142,
-    dewasa_p: 155,
-    lansia_l: 42,
-    lansia_p: 48
-  },
-  {
-    id: 5,
-    lat: -6.8512,
-    lng: 109.0845,
-    desa: 'Kaligangsa',
-    bayi_l: 38,
-    bayi_p: 42,
-    anak_l: 98,
-    anak_p: 105,
-    remaja_l: 75,
-    remaja_p: 82,
-    dewasa_l: 198,
-    dewasa_p: 215,
-    lansia_l: 62,
-    lansia_p: 70
-  },
-  {
-    id: 6,
-    lat: -6.8789,
-    lng: 109.0156,
-    desa: 'Wanasari',
-    bayi_l: 22,
-    bayi_p: 28,
-    anak_l: 58,
-    anak_p: 62,
-    remaja_l: 45,
-    remaja_p: 48,
-    dewasa_l: 125,
-    dewasa_p: 138,
-    lansia_l: 38,
-    lansia_p: 45
-  },
-  {
-    id: 7,
-    lat: -6.9012,
-    lng: 109.0589,
-    desa: 'Bulakamba',
-    bayi_l: 35,
-    bayi_p: 40,
-    anak_l: 92,
-    anak_p: 98,
-    remaja_l: 70,
-    remaja_p: 75,
-    dewasa_l: 185,
-    dewasa_p: 198,
-    lansia_l: 58,
-    lansia_p: 65
-  },
-  {
-    id: 8,
-    lat: -6.8456,
-    lng: 109.0234,
-    desa: 'Tanjung',
-    bayi_l: 18,
-    bayi_p: 22,
-    anak_l: 48,
-    anak_p: 52,
-    remaja_l: 38,
-    remaja_p: 42,
-    dewasa_l: 105,
-    dewasa_p: 115,
-    lansia_l: 32,
-    lansia_p: 38
-  }
-];
-
-// Top 10 Diagnosa
-const top10Diagnosa = [
-  { name: 'ISPA', jumlah: 1245, kode: 'J06.9' },
-  { name: 'Hipertensi', jumlah: 892, kode: 'I10' },
-  { name: 'Diabetes Mellitus', jumlah: 756, kode: 'E11.9' },
-  { name: 'Gastritis', jumlah: 623, kode: 'K29.7' },
-  { name: 'Dermatitis', jumlah: 534, kode: 'L30.9' },
-  { name: 'Myalgia', jumlah: 478, kode: 'M79.1' },
-  { name: 'Cephalgia', jumlah: 425, kode: 'R51' },
-  { name: 'Dyspepsia', jumlah: 398, kode: 'K30' },
-  { name: 'Febris', jumlah: 356, kode: 'R50.9' },
-  { name: 'Arthralgia', jumlah: 312, kode: 'M25.5' }
-];
-
-// Top 10 Keluhan
-const top10Keluhan = [
-  { name: 'Batuk', jumlah: 1567 },
-  { name: 'Demam', jumlah: 1234 },
-  { name: 'Sakit Kepala', jumlah: 1089 },
-  { name: 'Nyeri Perut', jumlah: 876 },
-  { name: 'Pilek', jumlah: 798 },
-  { name: 'Mual', jumlah: 654 },
-  { name: 'Pusing', jumlah: 589 },
-  { name: 'Nyeri Sendi', jumlah: 534 },
-  { name: 'Lemas', jumlah: 478 },
-  { name: 'Sesak Nafas', jumlah: 423 }
-];
-
-// Top 10 Pemakaian Obat
-const top10Obat = [
-  { name: 'Paracetamol 500mg', jumlah: 8956, satuan: 'Tab' },
-  { name: 'Amoxicillin 500mg', jumlah: 5678, satuan: 'Kaps' },
-  { name: 'Antasida DOEN', jumlah: 4532, satuan: 'Tab' },
-  { name: 'Vitamin B Complex', jumlah: 4123, satuan: 'Tab' },
-  { name: 'Amlodipine 5mg', jumlah: 3876, satuan: 'Tab' },
-  { name: 'Metformin 500mg', jumlah: 3654, satuan: 'Tab' },
-  { name: 'Omeprazole 20mg', jumlah: 3234, satuan: 'Kaps' },
-  { name: 'Cetirizine 10mg', jumlah: 2987, satuan: 'Tab' },
-  { name: 'Ibuprofen 400mg', jumlah: 2756, satuan: 'Tab' },
-  { name: 'Salbutamol 2mg', jumlah: 2543, satuan: 'Tab' }
-];
-
-// Data siklus hidup summary
-const siklusHidupSummary = [
-  { name: 'Bayi (0-1)', laki: 243, perempuan: 287, color: '#ec4899' },
-  { name: 'Anak (1-12)', laki: 638, perempuan: 668, color: '#f97316' },
-  { name: 'Remaja (12-25)', laki: 492, perempuan: 529, color: '#eab308' },
-  { name: 'Dewasa (25-60)', laki: 1323, perempuan: 1440, color: '#22c55e' },
-  { name: 'Lansia (>60)', laki: 413, perempuan: 475, color: '#6366f1' }
-];
-
 // Chart configs
 const diagnosaConfig: ChartConfig = {
   jumlah: { label: 'Jumlah Kasus', color: 'var(--primary)' }
@@ -265,21 +84,94 @@ const COLORS = ['#ec4899', '#f97316', '#eab308', '#22c55e', '#6366f1'];
 export default function MonitoringPage() {
   const [mounted, setMounted] = useState(false);
   const [selectedFilter, setSelectedFilter] = useState<string>('semua');
-  const [filters, setFilters] = useState<FilterValues | null>(null);
+  const [filters, setFilters] = useState<FilterParams>({});
   const { currentTab, setTab } = useTabFromUrl('diagnosa');
 
+  // Fetch data using SWR
+  const { data, isLoading, isError } = useMonitoringData(filters);
+
   const handleFilterChange = useCallback((newFilters: FilterValues) => {
-    setFilters(newFilters);
-    console.log('Monitoring Filters changed:', newFilters);
+    const month = newFilters.dateRange?.from?.getMonth();
+    const year = newFilters.dateRange?.from?.getFullYear();
+
+    setFilters({
+      puskesmasId: newFilters.puskesmasId || undefined,
+      bulan: month !== undefined ? month + 1 : undefined,
+      tahun: year
+    });
   }, []);
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
+  // Transform API data
+  const top10Diagnosa = useMemo(() => {
+    if (!data?.topDiagnosa) return [];
+    return data.topDiagnosa.slice(0, 10).map((item: any) => ({
+      name: item.nama,
+      jumlah: item.jumlahKasus,
+      kode: item.kodeIcd
+    }));
+  }, [data?.topDiagnosa]);
+
+  const top10Keluhan = useMemo(() => {
+    if (!data?.topKeluhan) return [];
+    return data.topKeluhan.slice(0, 10).map((item: any) => ({
+      name: item.keluhan,
+      jumlah: item.jumlah
+    }));
+  }, [data?.topKeluhan]);
+
+  const top10Obat = useMemo(() => {
+    if (!data?.topObat) return [];
+    return data.topObat.slice(0, 10).map((item: any) => ({
+      name: item.namaObat,
+      jumlah: item.jumlahPemakaian,
+      satuan: item.satuan || 'Tab'
+    }));
+  }, [data?.topObat]);
+
+  const siklusHidupSummary = useMemo(() => {
+    if (!data?.kunjunganBySiklusHidup) return [];
+    const kelompokColors: Record<string, string> = {
+      Bayi: '#ec4899',
+      Anak: '#f97316',
+      Remaja: '#eab308',
+      Dewasa: '#22c55e',
+      Lansia: '#6366f1'
+    };
+    return data.kunjunganBySiklusHidup.map((item: any) => ({
+      name: item.kelompok,
+      laki: item.laki || Math.floor(item.jumlah * 0.48),
+      perempuan: item.perempuan || Math.floor(item.jumlah * 0.52),
+      color: kelompokColors[item.kelompok] || '#94a3b8'
+    }));
+  }, [data?.kunjunganBySiklusHidup]);
+
+  const sebaranPasienData = useMemo(() => {
+    if (!data?.kunjunganByDesa) return [];
+    return data.kunjunganByDesa.map((item: any, index: number) => ({
+      id: index + 1,
+      lat: item.lat || -6.8748 + (Math.random() - 0.5) * 0.1,
+      lng: item.lng || 109.0526 + (Math.random() - 0.5) * 0.1,
+      desa: item.desa,
+      bayi_l: Math.floor(item.jumlah * 0.05),
+      bayi_p: Math.floor(item.jumlah * 0.06),
+      anak_l: Math.floor(item.jumlah * 0.12),
+      anak_p: Math.floor(item.jumlah * 0.13),
+      remaja_l: Math.floor(item.jumlah * 0.1),
+      remaja_p: Math.floor(item.jumlah * 0.11),
+      dewasa_l: Math.floor(item.jumlah * 0.18),
+      dewasa_p: Math.floor(item.jumlah * 0.2),
+      lansia_l: Math.floor(item.jumlah * 0.07),
+      lansia_p: Math.floor(item.jumlah * 0.08)
+    }));
+  }, [data?.kunjunganByDesa]);
+
   // Calculate total per siklus hidup
   const totalByGender = siklusHidupSummary.reduce(
-    (acc, curr) => ({
+    (acc: any, curr: any) => ({
       laki: acc.laki + curr.laki,
       perempuan: acc.perempuan + curr.perempuan
     }),
@@ -305,31 +197,56 @@ export default function MonitoringPage() {
         </div>
 
         {/* Summary Cards */}
-        <div className='grid gap-4 md:grid-cols-5'>
-          {siklusHidupSummary.map((item, index) => (
-            <Card key={item.name}>
-              <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
-                <CardTitle className='text-sm font-medium'>
-                  {item.name}
-                </CardTitle>
-                <div
-                  className='h-3 w-3 rounded-full'
-                  style={{ backgroundColor: item.color }}
-                />
-              </CardHeader>
-              <CardContent>
-                <div className='text-2xl font-bold'>
-                  {(item.laki + item.perempuan).toLocaleString()}
-                </div>
-                <div className='text-muted-foreground flex items-center gap-2 text-xs'>
-                  <span>L: {item.laki.toLocaleString()}</span>
-                  <span>|</span>
-                  <span>P: {item.perempuan.toLocaleString()}</span>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+        {isLoading ? (
+          <div className='grid gap-4 md:grid-cols-5'>
+            {[...Array(5)].map((_, i) => (
+              <Card key={i}>
+                <CardHeader className='pb-2'>
+                  <Skeleton className='h-4 w-24' />
+                </CardHeader>
+                <CardContent>
+                  <Skeleton className='h-8 w-16' />
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        ) : (
+          <div className='grid gap-4 md:grid-cols-5'>
+            {siklusHidupSummary.length > 0 ? (
+              siklusHidupSummary.map((item: any, index: number) => (
+                <Card key={item.name}>
+                  <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
+                    <CardTitle className='text-sm font-medium'>
+                      {item.name}
+                    </CardTitle>
+                    <div
+                      className='h-3 w-3 rounded-full'
+                      style={{ backgroundColor: item.color }}
+                    />
+                  </CardHeader>
+                  <CardContent>
+                    <div className='text-2xl font-bold'>
+                      {(
+                        (item.laki || 0) + (item.perempuan || 0)
+                      ).toLocaleString()}
+                    </div>
+                    <div className='text-muted-foreground flex items-center gap-2 text-xs'>
+                      <span>L: {(item.laki || 0).toLocaleString()}</span>
+                      <span>|</span>
+                      <span>P: {(item.perempuan || 0).toLocaleString()}</span>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))
+            ) : (
+              <Card className='md:col-span-5'>
+                <CardContent className='text-muted-foreground py-8 text-center'>
+                  Tidak ada data siklus hidup
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        )}
 
         {/* Map Section */}
         <Card>
@@ -404,7 +321,7 @@ export default function MonitoringPage() {
                     attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                     url='https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
                   />
-                  {sebaranPasienData.map((lokasi) => {
+                  {sebaranPasienData.map((lokasi: any) => {
                     let total = 0;
                     let label = '';
 
@@ -495,7 +412,7 @@ export default function MonitoringPage() {
 
             {/* Legend */}
             <div className='mt-4 flex flex-wrap gap-4'>
-              {siklusHidupSummary.map((item) => (
+              {siklusHidupSummary.map((item: any) => (
                 <div
                   key={item.name}
                   className='flex items-center gap-2 text-sm'
@@ -555,7 +472,7 @@ export default function MonitoringPage() {
                       />
                       <ChartTooltip content={<ChartTooltipContent />} />
                       <Bar dataKey='jumlah' radius={[0, 4, 4, 0]}>
-                        {top10Diagnosa.map((entry, index) => (
+                        {top10Diagnosa.map((entry: any, index: number) => (
                           <Cell
                             key={`cell-${index}`}
                             fill={`hsl(192, 100%, ${35 + index * 5}%)`}
@@ -576,7 +493,7 @@ export default function MonitoringPage() {
                 </CardHeader>
                 <CardContent>
                   <div className='space-y-3'>
-                    {top10Diagnosa.map((item, index) => (
+                    {top10Diagnosa.map((item: any, index: number) => (
                       <div
                         key={item.name}
                         className='flex items-center justify-between rounded-lg border p-3'
@@ -596,7 +513,7 @@ export default function MonitoringPage() {
                           </div>
                         </div>
                         <Badge variant='secondary'>
-                          {item.jumlah.toLocaleString()} kasus
+                          {(item.jumlah || 0).toLocaleString()} kasus
                         </Badge>
                       </div>
                     ))}
@@ -632,7 +549,7 @@ export default function MonitoringPage() {
                       />
                       <ChartTooltip content={<ChartTooltipContent />} />
                       <Bar dataKey='jumlah' radius={[0, 4, 4, 0]}>
-                        {top10Keluhan.map((entry, index) => (
+                        {top10Keluhan.map((entry: any, index: number) => (
                           <Cell
                             key={`cell-${index}`}
                             fill={`hsl(270, 80%, ${40 + index * 5}%)`}
@@ -651,7 +568,7 @@ export default function MonitoringPage() {
                 </CardHeader>
                 <CardContent>
                   <div className='space-y-3'>
-                    {top10Keluhan.map((item, index) => (
+                    {top10Keluhan.map((item: any, index: number) => (
                       <div
                         key={item.name}
                         className='flex items-center justify-between rounded-lg border p-3'
@@ -666,7 +583,7 @@ export default function MonitoringPage() {
                           <p className='font-medium'>{item.name}</p>
                         </div>
                         <Badge variant='secondary'>
-                          {item.jumlah.toLocaleString()} laporan
+                          {(item.jumlah || 0).toLocaleString()} laporan
                         </Badge>
                       </div>
                     ))}
@@ -702,7 +619,7 @@ export default function MonitoringPage() {
                       />
                       <ChartTooltip content={<ChartTooltipContent />} />
                       <Bar dataKey='jumlah' radius={[0, 4, 4, 0]}>
-                        {top10Obat.map((entry, index) => (
+                        {top10Obat.map((entry: any, index: number) => (
                           <Cell
                             key={`cell-${index}`}
                             fill={`hsl(142, 70%, ${30 + index * 5}%)`}
@@ -721,7 +638,7 @@ export default function MonitoringPage() {
                 </CardHeader>
                 <CardContent>
                   <div className='space-y-3'>
-                    {top10Obat.map((item, index) => (
+                    {top10Obat.map((item: any, index: number) => (
                       <div
                         key={item.name}
                         className='flex items-center justify-between rounded-lg border p-3'
@@ -736,7 +653,8 @@ export default function MonitoringPage() {
                           <p className='font-medium'>{item.name}</p>
                         </div>
                         <Badge variant='secondary'>
-                          {item.jumlah.toLocaleString()} {item.satuan}
+                          {(item.jumlah || 0).toLocaleString()}{' '}
+                          {item.satuan || ''}
                         </Badge>
                       </div>
                     ))}

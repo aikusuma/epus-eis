@@ -151,8 +151,8 @@ async function main() {
   }> = [];
 
   for (const icd10 of icd10Records) {
-    // Generate 20-100 random diagnoses per disease
-    const count = Math.floor(Math.random() * 80) + 20;
+    // Generate 100-300 random diagnoses per disease for better trend visualization
+    const count = Math.floor(Math.random() * 200) + 100;
 
     for (let i = 0; i < count; i++) {
       const isLaki = Math.random() > 0.5;
@@ -171,8 +171,8 @@ async function main() {
         umur = Math.floor(Math.random() * 60) + 15; // 15-75
       }
 
-      // Random date in last 30 days
-      const daysAgo = Math.floor(Math.random() * 30);
+      // Random date in last 90 days for better trend data
+      const daysAgo = Math.floor(Math.random() * 90);
       const tanggal = new Date();
       tanggal.setDate(tanggal.getDate() - daysAgo);
 

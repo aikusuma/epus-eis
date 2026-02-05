@@ -233,3 +233,324 @@ model SystemConfig {
 
   @@map("system_configs")
 }
+
+// ============================================
+// KLASTER 1: SDM, OBAT, KEUANGAN
+// ============================================
+
+model TenagaKesehatan {
+  id            String   @id @default(cuid())
+  puskesmasId   String   @map("puskesmas_id")
+  kategori      String   // 'Dokter Umum', 'Dokter Gigi', 'Bidan', 'Perawat', 'Apoteker', 'Analis Lab'
+  jumlah        Int
+  target        Int
+  bulan         Int
+  tahun         Int
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  @@unique([puskesmasId, kategori, bulan, tahun])
+  @@index([puskesmasId])
+  @@map("tenaga_kesehatan")
+}
+
+model StokObat {
+  id            String   @id @default(cuid())
+  puskesmasId   String   @map("puskesmas_id")
+  namaObat      String   @map("nama_obat")
+  satuan        String
+  stok          Int
+  pemakaian     Int
+  bulan         Int
+  tahun         Int
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  @@unique([puskesmasId, namaObat, bulan, tahun])
+  @@index([puskesmasId])
+  @@map("stok_obat")
+}
+
+model Keuangan {
+  id            String   @id @default(cuid())
+  puskesmasId   String   @map("puskesmas_id")
+  kategori      String   // 'Pendapatan JKN', 'Pendapatan Umum', 'BLUD', 'DAK'
+  nominal       Float
+  bulan         Int
+  tahun         Int
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  @@unique([puskesmasId, kategori, bulan, tahun])
+  @@index([puskesmasId])
+  @@map("keuangan")
+}
+
+// ============================================
+// KLASTER 2: IBU DAN ANAK
+// ============================================
+
+model AntenatalCare {
+  id            String   @id @default(cuid())
+  puskesmasId   String   @map("puskesmas_id")
+  k1            Int
+  k4            Int
+  target        Int
+  bulan         Int
+  tahun         Int
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  @@unique([puskesmasId, bulan, tahun])
+  @@index([puskesmasId])
+  @@map("antenatal_care")
+}
+
+model Imunisasi {
+  id            String   @id @default(cuid())
+  puskesmasId   String   @map("puskesmas_id")
+  jenisImunisasi String  @map("jenis_imunisasi") // 'HB-0', 'BCG', 'Polio 1', etc.
+  kategori      String   // 'bayi', 'baduta', 'bias'
+  sasaran       Int
+  capaian       Int
+  bulan         Int
+  tahun         Int
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  @@unique([puskesmasId, jenisImunisasi, bulan, tahun])
+  @@index([puskesmasId])
+  @@map("imunisasi")
+}
+
+// ============================================
+// KLASTER 3: DETEKSI DINI & PTM
+// ============================================
+
+model DeteksiDini {
+  id            String   @id @default(cuid())
+  puskesmasId   String   @map("puskesmas_id")
+  jenis         String   // 'Kanker Serviks (IVA)', 'Kanker Payudara', 'Tuberculosis', etc.
+  sasaran       Int
+  capaian       Int
+  bulan         Int
+  tahun         Int
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  @@unique([puskesmasId, jenis, bulan, tahun])
+  @@index([puskesmasId])
+  @@map("deteksi_dini")
+}
+
+model FaktorRisiko {
+  id            String   @id @default(cuid())
+  puskesmasId   String   @map("puskesmas_id")
+  faktor        String   // 'Hipertensi', 'Diabetes', 'Obesitas', 'Merokok', etc.
+  jumlahKasus   Int      @map("jumlah_kasus")
+  kelompokUmur  String   @map("kelompok_umur") // '15-24', '25-44', '45-59', '60+'
+  bulan         Int
+  tahun         Int
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  @@unique([puskesmasId, faktor, kelompokUmur, bulan, tahun])
+  @@index([puskesmasId])
+  @@map("faktor_risiko")
+}
+
+model PemeriksaanGigi {
+  id            String   @id @default(cuid())
+  puskesmasId   String   @map("puskesmas_id")
+  kategori      String   // 'SD/MI', 'SMP/MTs', 'SMA/SMK'
+  sasaran       Int
+  diperiksa     Int
+  perluPerawatan Int     @map("perlu_perawatan")
+  bulan         Int
+  tahun         Int
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  @@unique([puskesmasId, kategori, bulan, tahun])
+  @@index([puskesmasId])
+  @@map("pemeriksaan_gigi")
+}
+
+// ============================================
+// KLASTER 4: PERINGATAN DIAGNOSA
+// ============================================
+
+model DiagnosaHarian {
+  id            String   @id @default(cuid())
+  puskesmasId   String   @map("puskesmas_id")
+  icd10Code     String   @map("icd10_code")
+  diagnosa      String
+  jumlahKasus   Int      @map("jumlah_kasus")
+  tingkatBahaya String   @map("tingkat_bahaya") // 'tinggi', 'sedang', 'rendah'
+  tanggal       DateTime
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  @@index([puskesmasId])
+  @@index([tanggal])
+  @@index([icd10Code])
+  @@index([tingkatBahaya])
+  @@map("diagnosa_harian")
+}
+
+// ============================================
+// LINTAS KLASTER
+// ============================================
+
+model GawatDarurat {
+  id            String   @id @default(cuid())
+  puskesmasId   String   @map("puskesmas_id")
+  triaseMerah   Int      @map("triase_merah")
+  triaseKuning  Int      @map("triase_kuning")
+  triaseHijau   Int      @map("triase_hijau")
+  tanggal       DateTime
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  @@unique([puskesmasId, tanggal])
+  @@index([puskesmasId])
+  @@index([tanggal])
+  @@map("gawat_darurat")
+}
+
+model Farmasi {
+  id            String   @id @default(cuid())
+  puskesmasId   String   @map("puskesmas_id")
+  jumlahResep   Int      @map("jumlah_resep")
+  obatKeluar    Int      @map("obat_keluar")
+  racikan       Int
+  tanggal       DateTime
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  @@unique([puskesmasId, tanggal])
+  @@index([puskesmasId])
+  @@index([tanggal])
+  @@map("farmasi")
+}
+
+model Laboratorium {
+  id            String   @id @default(cuid())
+  puskesmasId   String   @map("puskesmas_id")
+  jumlahPemeriksaan Int  @map("jumlah_pemeriksaan")
+  hematologi    Int
+  kimiaKlinik   Int      @map("kimia_klinik")
+  urinalisis    Int
+  tanggal       DateTime
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  @@unique([puskesmasId, tanggal])
+  @@index([puskesmasId])
+  @@index([tanggal])
+  @@map("laboratorium")
+}
+
+model RawatInap {
+  id            String   @id @default(cuid())
+  puskesmasId   String   @map("puskesmas_id")
+  pasienMasuk   Int      @map("pasien_masuk")
+  pasienKeluar  Int      @map("pasien_keluar")
+  bedTerisi     Int      @map("bed_terisi")
+  bedTotal      Int      @map("bed_total")
+  tanggal       DateTime
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  @@unique([puskesmasId, tanggal])
+  @@index([puskesmasId])
+  @@index([tanggal])
+  @@map("rawat_inap")
+}
+
+// ============================================
+// MONITORING: KUNJUNGAN & PASIEN
+// ============================================
+
+model Kunjungan {
+  id            String   @id @default(cuid())
+  puskesmasId   String   @map("puskesmas_id")
+  jenisLayanan  String   @map("jenis_layanan") // 'Rawat Jalan', 'UGD', 'Rawat Inap', etc.
+  pasienNama    String   @map("pasien_nama")
+  pasienUmur    Int      @map("pasien_umur")
+  pasienGender  String   @map("pasien_gender") // 'L', 'P'
+  pasienAlamat  String?  @map("pasien_alamat")
+  pasienDesa    String?  @map("pasien_desa")
+  icd10Code     String?  @map("icd10_code")
+  diagnosa      String?
+  keluhan       String?
+  obat          String?
+  tanggal       DateTime
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  @@index([puskesmasId])
+  @@index([tanggal])
+  @@index([icd10Code])
+  @@index([pasienDesa])
+  @@map("kunjungan")
+}
+
+model TopDiagnosa {
+  id            String   @id @default(cuid())
+  puskesmasId   String   @map("puskesmas_id")
+  icd10Code     String   @map("icd10_code")
+  diagnosa      String
+  jumlahKasus   Int      @map("jumlah_kasus")
+  bulan         Int
+  tahun         Int
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  @@unique([puskesmasId, icd10Code, bulan, tahun])
+  @@index([puskesmasId])
+  @@map("top_diagnosa")
+}
+
+model TopKeluhan {
+  id            String   @id @default(cuid())
+  puskesmasId   String   @map("puskesmas_id")
+  keluhan       String
+  jumlahKasus   Int      @map("jumlah_kasus")
+  bulan         Int
+  tahun         Int
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  @@unique([puskesmasId, keluhan, bulan, tahun])
+  @@index([puskesmasId])
+  @@map("top_keluhan")
+}
+
+model TopObat {
+  id            String   @id @default(cuid())
+  puskesmasId   String   @map("puskesmas_id")
+  namaObat      String   @map("nama_obat")
+  jumlahResep   Int      @map("jumlah_resep")
+  bulan         Int
+  tahun         Int
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  @@unique([puskesmasId, namaObat, bulan, tahun])
+  @@index([puskesmasId])
+  @@map("top_obat")
+}
+
+// ============================================
+// OVERVIEW SUMMARY (Aggregated data for dashboard)
+// ============================================
+
+model OverviewSummary {
+  id            String   @id @default(cuid())
+  puskesmasId   String?  @map("puskesmas_id") // null = kabupaten level
+  totalKunjungan Int     @map("total_kunjungan")
+  kunjunganBaru Int      @map("kunjungan_baru")
+  kunjunganLama Int      @map("kunjungan_lama")
+  pasienBpjs    Int      @map("pasien_bpjs")
+  pasienUmum    Int      @map("pasien_umum")
+  bulan         Int
+  tahun         Int
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  @@unique([puskesmasId, bulan, tahun])
+  @@index([bulan, tahun])
+  @@map("overview_summary")
+}

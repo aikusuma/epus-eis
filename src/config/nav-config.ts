@@ -71,23 +71,11 @@ export const navItems: NavItem[] = [
   },
   {
     title: 'Laporan',
-    url: '#',
+    url: '/dashboard/laporan',
     icon: 'fileText',
-    isActive: true,
-    items: [
-      {
-        title: 'Bulanan',
-        url: '/dashboard/laporan/bulanan',
-        icon: 'calendar',
-        shortcut: ['l', 'b']
-      },
-      {
-        title: 'Export',
-        url: '/dashboard/laporan/export',
-        icon: 'download',
-        shortcut: ['l', 'e']
-      }
-    ]
+    isActive: false,
+    shortcut: ['l', 'p'],
+    items: []
   },
   {
     title: 'Akun',

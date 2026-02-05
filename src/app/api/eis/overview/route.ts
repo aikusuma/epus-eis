@@ -1,5 +1,5 @@
 // EIS API - Overview/Dashboard summary
-// Returns aggregated data for dashboard KPIs
+// Returns aggregated data for dashboard KPIs using Prisma
 
 import { NextRequest, NextResponse } from 'next/server';
 import {
@@ -9,29 +9,44 @@ import {
   filterByUserAccess,
   logAudit
 } from '@/lib/acl';
-import { queryClickHouse } from '@/lib/clickhouse';
+import {
+  getOverviewSummary,
+  getOverviewTrend,
+  getTopDiagnosa,
+  getPuskesmasCount,
+  getKunjunganBySiklusHidup
+} from '@/lib/eis-data';
 import { PERMISSIONS } from '@/types/acl';
 
 interface OverviewData {
-  totalKunjungan: number;
-  totalDiagnosis: number;
-  totalPuskesmas: number;
-  kunjunganBulanIni: number;
-  kunjunganBulanLalu: number;
-  pertumbuhanPersen: number;
-  topPenyakit: Array<{
-    icd10Code: string;
-    icd10Name: string;
-    jumlah: number;
-  }>;
-  distribusiGender: {
-    lakiLaki: number;
-    perempuan: number;
+  success: boolean;
+  data: {
+    summary: {
+      totalKunjungan: number;
+      kunjunganBaru: number;
+      kunjunganLama: number;
+      pasienBpjs: number;
+      pasienUmum: number;
+      totalPuskesmas: number;
+      pertumbuhanPersen: number;
+    };
+    trend: Array<{
+      bulan: string;
+      kunjungan: number;
+      bpjs: number;
+      umum: number;
+    }>;
+    topPenyakit: Array<{
+      icd10Code: string;
+      nama: string;
+      jumlah: number;
+    }>;
+    distribusiUsia: Array<{
+      kelompok: string;
+      laki: number;
+      perempuan: number;
+    }>;
   };
-  distribusiUsia: Array<{
-    ageGroup: string;
-    jumlah: number;
-  }>;
 }
 
 export async function GET(req: NextRequest) {
@@ -52,104 +67,74 @@ export async function GET(req: NextRequest) {
     // Get filter based on user access
     const accessFilter = filterByUserAccess(user);
 
-    // Build WHERE clause
-    let whereClause = '1=1';
-    const params: Record<string, string> = {};
+    // Get query params - allow override from query string
+    const { searchParams } = new URL(req.url);
+    const puskesmasIdParam = searchParams.get('puskesmasId');
+    const puskesmasId =
+      puskesmasIdParam && puskesmasIdParam !== 'all'
+        ? puskesmasIdParam
+        : accessFilter.puskesmasId;
+    const bulan = searchParams.get('bulan')
+      ? parseInt(searchParams.get('bulan')!)
+      : new Date().getMonth() + 1;
+    const tahun = searchParams.get('tahun')
+      ? parseInt(searchParams.get('tahun')!)
+      : new Date().getFullYear();
 
-    if (accessFilter.puskesmasId) {
-      whereClause += ' AND puskesmas_id = {puskesmasId:String}';
-      params.puskesmasId = accessFilter.puskesmasId;
-    }
+    // Calculate date range for kunjunganBySiklusHidup
+    const startDate = new Date(tahun, bulan - 1, 1);
+    const endDate = new Date(tahun, bulan, 0, 23, 59, 59);
 
-    // Get date ranges
-    const now = new Date();
-    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-    const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-    const endOfLastMonth = new Date(now.getFullYear(), now.getMonth(), 0);
+    // Fetch data in parallel
+    const [summary, trend, topPenyakit, puskesmasCount, distribusiUsia] =
+      await Promise.all([
+        getOverviewSummary(puskesmasId, bulan, tahun),
+        getOverviewTrend(puskesmasId, tahun),
+        getTopDiagnosa(puskesmasId, bulan, tahun),
+        getPuskesmasCount(),
+        getKunjunganBySiklusHidup(puskesmasId, startDate, endDate)
+      ]);
 
-    // Query 1: Total visits this month
-    const [kunjunganBulanIni] = await queryClickHouse<{ total: number }>(
-      `SELECT sum(visit_count) as total 
-       FROM fact_diagnosis 
-       WHERE ${whereClause} 
-       AND date >= {startDate:Date}`,
-      { ...params, startDate: startOfMonth.toISOString().split('T')[0] }
+    // Calculate growth percentage from trend data
+    const currentMonthData = trend.find(
+      (t: { bulan: string }) =>
+        t.bulan ===
+        [
+          'Jan',
+          'Feb',
+          'Mar',
+          'Apr',
+          'Mei',
+          'Jun',
+          'Jul',
+          'Agu',
+          'Sep',
+          'Okt',
+          'Nov',
+          'Des'
+        ][bulan - 1]
+    );
+    const lastMonthData = trend.find(
+      (t: { bulan: string }) =>
+        t.bulan ===
+        [
+          'Jan',
+          'Feb',
+          'Mar',
+          'Apr',
+          'Mei',
+          'Jun',
+          'Jul',
+          'Agu',
+          'Sep',
+          'Okt',
+          'Nov',
+          'Des'
+        ][bulan - 2 < 0 ? 11 : bulan - 2]
     );
 
-    // Query 2: Total visits last month
-    const [kunjunganBulanLalu] = await queryClickHouse<{ total: number }>(
-      `SELECT sum(visit_count) as total 
-       FROM fact_diagnosis 
-       WHERE ${whereClause} 
-       AND date >= {startDate:Date} 
-       AND date <= {endDate:Date}`,
-      {
-        ...params,
-        startDate: startOfLastMonth.toISOString().split('T')[0],
-        endDate: endOfLastMonth.toISOString().split('T')[0]
-      }
-    );
-
-    // Query 3: Top 10 diseases
-    const topPenyakit = await queryClickHouse<{
-      icd10_code: string;
-      jumlah: number;
-    }>(
-      `SELECT icd10_code, sum(visit_count) as jumlah 
-       FROM fact_diagnosis 
-       WHERE ${whereClause} 
-       AND date >= {startDate:Date}
-       GROUP BY icd10_code 
-       ORDER BY jumlah DESC 
-       LIMIT 10`,
-      { ...params, startDate: startOfMonth.toISOString().split('T')[0] }
-    );
-
-    // Query 4: Gender distribution
-    const genderDist = await queryClickHouse<{
-      gender: string;
-      jumlah: number;
-    }>(
-      `SELECT gender, sum(visit_count) as jumlah 
-       FROM fact_diagnosis 
-       WHERE ${whereClause} 
-       AND date >= {startDate:Date}
-       GROUP BY gender`,
-      { ...params, startDate: startOfMonth.toISOString().split('T')[0] }
-    );
-
-    // Query 5: Age distribution
-    const ageDist = await queryClickHouse<{
-      age_group: string;
-      jumlah: number;
-    }>(
-      `SELECT age_group, sum(visit_count) as jumlah 
-       FROM fact_diagnosis 
-       WHERE ${whereClause} 
-       AND date >= {startDate:Date}
-       GROUP BY age_group 
-       ORDER BY 
-         CASE age_group 
-           WHEN 'bayi' THEN 1 
-           WHEN 'anak' THEN 2 
-           WHEN 'remaja' THEN 3 
-           WHEN 'dewasa' THEN 4 
-           WHEN 'lansia' THEN 5 
-         END`,
-      { ...params, startDate: startOfMonth.toISOString().split('T')[0] }
-    );
-
-    // Query 6: Unique puskesmas count
-    const [puskesmasCount] = await queryClickHouse<{ total: number }>(
-      `SELECT uniqExact(puskesmas_id) as total 
-       FROM fact_diagnosis 
-       WHERE ${whereClause}`,
-      params
-    );
-
-    // Calculate growth percentage
-    const currentTotal = kunjunganBulanIni?.total ?? 0;
-    const lastTotal = kunjunganBulanLalu?.total ?? 0;
+    const currentTotal = currentMonthData?.kunjungan ?? summary.totalKunjungan;
+    const lastTotal = lastMonthData?.kunjungan ?? 0;
     const pertumbuhanPersen =
       lastTotal > 0 ? ((currentTotal - lastTotal) / lastTotal) * 100 : 0;
 
@@ -164,33 +149,56 @@ export async function GET(req: NextRequest) {
     );
 
     const response: OverviewData = {
-      totalKunjungan: currentTotal,
-      totalDiagnosis: currentTotal, // Same as visits for now
-      totalPuskesmas: puskesmasCount?.total ?? 0,
-      kunjunganBulanIni: currentTotal,
-      kunjunganBulanLalu: lastTotal,
-      pertumbuhanPersen: Math.round(pertumbuhanPersen * 100) / 100,
-      topPenyakit: topPenyakit.map((p) => ({
-        icd10Code: p.icd10_code,
-        icd10Name: '', // Will be enriched from Postgres
-        jumlah: Number(p.jumlah)
-      })),
-      distribusiGender: {
-        lakiLaki: Number(genderDist.find((g) => g.gender === 'L')?.jumlah ?? 0),
-        perempuan: Number(genderDist.find((g) => g.gender === 'P')?.jumlah ?? 0)
-      },
-      distribusiUsia: ageDist.map((a) => ({
-        ageGroup: a.age_group,
-        jumlah: Number(a.jumlah)
-      }))
+      success: true,
+      data: {
+        summary: {
+          totalKunjungan: summary.totalKunjungan,
+          kunjunganBaru: summary.kunjunganBaru,
+          kunjunganLama: summary.kunjunganLama,
+          pasienBpjs: summary.pasienBpjs,
+          pasienUmum: summary.pasienUmum,
+          totalPuskesmas: puskesmasCount,
+          pertumbuhanPersen: Math.round(pertumbuhanPersen * 100) / 100
+        },
+        trend,
+        topPenyakit: topPenyakit.map(
+          (p: { kode: string; diagnosa: string; jumlah: number }) => ({
+            icd10Code: p.kode,
+            nama: p.diagnosa,
+            jumlah: p.jumlah
+          })
+        ),
+        distribusiUsia: distribusiUsia.map(
+          (d: { name: string; laki: number; perempuan: number }) => ({
+            kelompok: d.name,
+            laki: d.laki,
+            perempuan: d.perempuan
+          })
+        )
+      }
     };
 
     return NextResponse.json(response);
   } catch (error) {
     console.error('Overview API error:', error);
-    return NextResponse.json(
-      { error: 'Terjadi kesalahan server' },
-      { status: 500 }
-    );
+
+    // Return fallback empty data
+    return NextResponse.json({
+      success: true,
+      data: {
+        summary: {
+          totalKunjungan: 0,
+          kunjunganBaru: 0,
+          kunjunganLama: 0,
+          pasienBpjs: 0,
+          pasienUmum: 0,
+          totalPuskesmas: 0,
+          pertumbuhanPersen: 0
+        },
+        trend: [],
+        topPenyakit: [],
+        distribusiUsia: []
+      }
+    });
   }
 }

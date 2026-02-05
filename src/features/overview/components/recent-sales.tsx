@@ -1,3 +1,6 @@
+'use client';
+
+import { useMemo } from 'react';
 import {
   Card,
   CardHeader,
@@ -6,6 +9,7 @@ import {
   CardDescription
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
   IconVirus,
   IconHeartbeat,
@@ -13,56 +17,75 @@ import {
   IconLungs,
   IconDroplet
 } from '@tabler/icons-react';
+import { useOverviewData } from '@/hooks/use-eis-data';
 
-const topPenyakit = [
-  {
-    code: 'J06.9',
-    name: 'ISPA (Infeksi Saluran Pernapasan Akut)',
-    icon: IconLungs,
-    count: 8234,
-    trend: 'down',
-    percent: '-5.2%',
-    kategori: 'menular'
-  },
-  {
-    code: 'I10',
-    name: 'Hipertensi Primer (Esensial)',
-    icon: IconHeartbeat,
-    count: 6512,
-    trend: 'up',
-    percent: '+8.3%',
-    kategori: 'PTM'
-  },
-  {
-    code: 'E11.9',
-    name: 'Diabetes Melitus Tipe 2',
-    icon: IconDroplet,
-    count: 4128,
-    trend: 'up',
-    percent: '+3.1%',
-    kategori: 'PTM'
-  },
-  {
-    code: 'K29.7',
-    name: 'Gastritis',
-    icon: IconVirus,
-    count: 3845,
-    trend: 'stable',
-    percent: '+0.5%',
-    kategori: 'umum'
-  },
-  {
-    code: 'R50.9',
-    name: 'Demam, Tidak Spesifik',
-    icon: IconTemperature,
-    count: 2956,
-    trend: 'down',
-    percent: '-2.1%',
-    kategori: 'umum'
-  }
-];
+const iconMap: Record<string, any> = {
+  J: IconLungs, // Respiratory
+  I: IconHeartbeat, // Cardiovascular
+  E: IconDroplet, // Endocrine
+  K: IconVirus, // Digestive
+  R: IconTemperature // Symptoms
+};
+
+const kategoriMap: Record<string, string> = {
+  J: 'menular',
+  I: 'PTM',
+  E: 'PTM',
+  K: 'umum',
+  R: 'umum'
+};
+
+function getIconForCode(code: string) {
+  const firstChar = code?.charAt(0) || '';
+  return iconMap[firstChar] || IconVirus;
+}
+
+function getKategoriForCode(code: string) {
+  const firstChar = code?.charAt(0) || '';
+  return kategoriMap[firstChar] || 'umum';
+}
 
 export function RecentSales() {
+  const { data, isLoading } = useOverviewData();
+
+  const topPenyakit = useMemo(() => {
+    if (!data?.topPenyakit) return [];
+
+    return data.topPenyakit.slice(0, 5).map((p: any) => ({
+      code: p.icd10Code,
+      name: p.nama || p.icd10Code,
+      icon: getIconForCode(p.icd10Code),
+      count: p.jumlah,
+      trend: 'stable',
+      percent: '+0%',
+      kategori: getKategoriForCode(p.icd10Code)
+    }));
+  }, [data]);
+
+  if (isLoading) {
+    return (
+      <Card className='h-full'>
+        <CardHeader className='pb-2'>
+          <CardTitle className='text-base'>Top 5 Penyakit</CardTitle>
+          <CardDescription className='text-xs'>Loading...</CardDescription>
+        </CardHeader>
+        <CardContent className='pt-0'>
+          <div className='space-y-3'>
+            {[1, 2, 3, 4, 5].map((i) => (
+              <div key={i} className='flex items-center gap-2'>
+                <Skeleton className='h-7 w-7 rounded-full' />
+                <div className='flex-1 space-y-1'>
+                  <Skeleton className='h-3 w-32' />
+                  <Skeleton className='h-2 w-16' />
+                </div>
+                <Skeleton className='h-5 w-16' />
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
   return (
     <Card className='h-full'>
       <CardHeader className='pb-2'>

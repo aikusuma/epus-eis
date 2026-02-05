@@ -142,7 +142,7 @@ export async function GET(
     });
     type Icd10Detail = (typeof icd10Details)[number];
     const icd10Map = new Map<string, Icd10Detail>(
-      icd10Details.map((i) => [i.code, i])
+      icd10Details.map((i: Icd10Detail) => [i.code, i])
     );
 
     // Distribution by layanan type

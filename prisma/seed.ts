@@ -3,6 +3,7 @@
 
 import { PrismaClient } from '@prisma/client';
 import { hash } from 'bcryptjs';
+import seedEisData from './seed-eis-data';
 
 const prisma = new PrismaClient();
 
@@ -558,6 +559,12 @@ async function main() {
   }
 
   console.log('✅ System config created');
+
+  // ============================================
+  // SEED EIS DATA
+  // ============================================
+  await seedEisData();
+
   console.log('\n🎉 Seeding completed!');
 }
 

@@ -40,6 +40,8 @@ export interface FilterValues {
   dateRange: DateRange | undefined;
   puskesmasId: string;
   jenisLayanan: string;
+  bulan?: number;
+  tahun?: number;
 }
 
 interface Puskesmas {

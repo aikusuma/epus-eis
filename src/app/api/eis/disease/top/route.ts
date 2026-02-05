@@ -107,7 +107,7 @@ export async function GET(req: NextRequest) {
 
     // Create lookup map
     const icd10Map = new Map<string, Icd10Detail>(
-      icd10Details.map((i) => [i.code, i])
+      icd10Details.map((i: Icd10Detail) => [i.code, i])
     );
 
     // Enrich results

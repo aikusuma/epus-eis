@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   Card,
   CardContent,
@@ -20,8 +20,21 @@ import {
   IconCalendar,
   IconBuilding,
   IconChartBar,
-  IconLoader2
+  IconLoader2,
+  IconTrendingUp
 } from '@tabler/icons-react';
+import {
+  Area,
+  AreaChart,
+  Bar,
+  BarChart,
+  CartesianGrid,
+  XAxis,
+  YAxis,
+  Tooltip,
+  Legend,
+  ResponsiveContainer
+} from 'recharts';
 
 // Type definitions
 interface Icd10 {
@@ -34,7 +47,7 @@ interface Icd10 {
   };
 }
 
-interface DiagnosisDummy {
+interface Diagnosis {
   id: string;
   pasienNama: string;
   pasienUmur: number;
@@ -47,213 +60,62 @@ interface DiagnosisDummy {
   };
 }
 
-interface SearchResult {
-  icd10: Icd10[];
-  diagnoses: DiagnosisDummy[];
+interface TrendData {
+  date: string;
+  minggu: string;
+  laki: number;
+  perempuan: number;
+  total: number;
 }
-
-// Dummy data untuk demo (sebelum database terkoneksi)
-const dummyIcd10Data: Icd10[] = [
-  {
-    id: '1',
-    code: 'I10',
-    display: 'Essential (primary) hypertension',
-    version: 'ICD10_2010',
-    _count: { diagnoses: 156 }
-  },
-  {
-    id: '2',
-    code: 'J06.9',
-    display: 'Acute upper respiratory infection, unspecified',
-    version: 'ICD10_2010',
-    _count: { diagnoses: 234 }
-  },
-  {
-    id: '3',
-    code: 'K30',
-    display: 'Dyspepsia',
-    version: 'ICD10_2010',
-    _count: { diagnoses: 89 }
-  },
-  {
-    id: '4',
-    code: 'E11.9',
-    display: 'Non-insulin-dependent diabetes mellitus without complications',
-    version: 'ICD10_2010',
-    _count: { diagnoses: 112 }
-  },
-  {
-    id: '5',
-    code: 'M79.1',
-    display: 'Myalgia',
-    version: 'ICD10_2010',
-    _count: { diagnoses: 67 }
-  },
-  {
-    id: '6',
-    code: 'R50.9',
-    display: 'Fever, unspecified',
-    version: 'ICD10_2010',
-    _count: { diagnoses: 145 }
-  },
-  {
-    id: '7',
-    code: 'R51',
-    display: 'Headache',
-    version: 'ICD10_2010',
-    _count: { diagnoses: 98 }
-  },
-  {
-    id: '8',
-    code: 'A09',
-    display: 'Diarrhoea and gastroenteritis of presumed infectious origin',
-    version: 'ICD10_2010',
-    _count: { diagnoses: 76 }
-  },
-  {
-    id: '9',
-    code: 'M54.5',
-    display: 'Low back pain',
-    version: 'ICD10_2010',
-    _count: { diagnoses: 54 }
-  },
-  {
-    id: '10',
-    code: 'K29.7',
-    display: 'Gastritis, unspecified',
-    version: 'ICD10_2010',
-    _count: { diagnoses: 123 }
-  }
-];
-
-// Generate dummy diagnoses
-const generateDummyDiagnoses = (icd10Code: string): DiagnosisDummy[] => {
-  const namaLaki = [
-    'Slamet',
-    'Kusnadi',
-    'Suparjo',
-    'Warno',
-    'Karjo',
-    'Sutarno',
-    'Paijo',
-    'Tarno',
-    'Sugiarto',
-    'Jumadi',
-    'Warsito',
-    'Darmanto',
-    'Kusno',
-    'Parman',
-    'Suwandi'
-  ];
-  const namaPerempuan = [
-    'Sumirah',
-    'Wartini',
-    'Karsini',
-    'Sunarti',
-    'Tumini',
-    'Warsini',
-    'Lastri',
-    'Maryati',
-    'Sutini',
-    'Karmi',
-    'Jumiyem',
-    'Parini',
-    'Suwarni',
-    'Tukini',
-    'Kasiyem'
-  ];
-  const puskesmasList = [
-    'Puskesmas Brebes',
-    'Puskesmas Wanasari',
-    'Puskesmas Bulakamba',
-    'Puskesmas Tanjung',
-    'Puskesmas Losari',
-    'Puskesmas Jatibarang',
-    'Puskesmas Kersana',
-    'Puskesmas Ketanggungan'
-  ];
-
-  // Generate random sensor for name (e.g., "Slamet S***")
-  const generateSensor = () => {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-    const firstChar = chars[Math.floor(Math.random() * chars.length)];
-    const numStars = Math.floor(Math.random() * 3) + 2; // 2-4 stars
-    return ` ${firstChar}${'*'.repeat(numStars)}`;
-  };
-
-  const icd10 = dummyIcd10Data.find((d) => d.code === icd10Code);
-  if (!icd10) return [];
-
-  const diagnoses: DiagnosisDummy[] = [];
-  const count = Math.min(20, icd10._count?.diagnoses || 10);
-
-  for (let i = 0; i < count; i++) {
-    const isLaki = Math.random() > 0.5;
-    const namaList = isLaki ? namaLaki : namaPerempuan;
-    const namaDepan = namaList[Math.floor(Math.random() * namaList.length)];
-    const nama = namaDepan + generateSensor();
-
-    let umur: number;
-    if (icd10Code === 'I10' || icd10Code === 'E11.9') {
-      umur = Math.floor(Math.random() * 40) + 40;
-    } else if (icd10Code === 'J06.9' || icd10Code === 'A09') {
-      umur = Math.floor(Math.random() * 70) + 5;
-    } else {
-      umur = Math.floor(Math.random() * 60) + 15;
-    }
-
-    const daysAgo = Math.floor(Math.random() * 30);
-    const tanggal = new Date();
-    tanggal.setDate(tanggal.getDate() - daysAgo);
-
-    diagnoses.push({
-      id: `${icd10Code}-${i}`,
-      pasienNama: nama,
-      pasienUmur: umur,
-      pasienGender: isLaki ? 'L' : 'P',
-      puskesmas:
-        puskesmasList[Math.floor(Math.random() * puskesmasList.length)],
-      tanggalPeriksa: tanggal.toISOString(),
-      icd10: {
-        code: icd10.code,
-        display: icd10.display
-      }
-    });
-  }
-
-  return diagnoses.sort(
-    (a, b) =>
-      new Date(b.tanggalPeriksa).getTime() -
-      new Date(a.tanggalPeriksa).getTime()
-  );
-};
 
 export default function CariPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingDiagnoses, setIsLoadingDiagnoses] = useState(false);
+  const [isLoadingTrend, setIsLoadingTrend] = useState(false);
   const [searchResults, setSearchResults] = useState<Icd10[]>([]);
+  const [topIcd10, setTopIcd10] = useState<Icd10[]>([]);
   const [selectedIcd10, setSelectedIcd10] = useState<Icd10 | null>(null);
-  const [diagnoses, setDiagnoses] = useState<DiagnosisDummy[]>([]);
+  const [diagnoses, setDiagnoses] = useState<Diagnosis[]>([]);
+  const [trendData, setTrendData] = useState<TrendData[]>([]);
+
+  // Fetch top ICD-10 on mount
+  useEffect(() => {
+    const fetchTopIcd10 = async () => {
+      try {
+        const res = await fetch('/api/eis/search?type=top&limit=10');
+        const data = await res.json();
+        if (data.success) {
+          setTopIcd10(data.data);
+        }
+      } catch (error) {
+        console.error('Failed to fetch top ICD-10:', error);
+      }
+    };
+    fetchTopIcd10();
+  }, []);
 
   // Search function with debounce
-  const performSearch = useCallback((query: string) => {
+  const performSearch = useCallback(async (query: string) => {
     if (!query.trim()) {
       setSearchResults([]);
       return;
     }
 
     setIsLoading(true);
-
-    // Simulate API delay
-    setTimeout(() => {
-      const results = dummyIcd10Data.filter(
-        (item) =>
-          item.code.toLowerCase().includes(query.toLowerCase()) ||
-          item.display.toLowerCase().includes(query.toLowerCase())
+    try {
+      const res = await fetch(
+        `/api/eis/search?q=${encodeURIComponent(query)}&limit=20`
       );
-      setSearchResults(results);
+      const data = await res.json();
+      if (data.success) {
+        setSearchResults(data.data);
+      }
+    } catch (error) {
+      console.error('Search error:', error);
+    } finally {
       setIsLoading(false);
-    }, 300);
+    }
   }, []);
 
   useEffect(() => {
@@ -264,11 +126,34 @@ export default function CariPage() {
     return () => clearTimeout(timer);
   }, [searchQuery, performSearch]);
 
-  // Handle ICD10 selection
-  const handleSelectIcd10 = (icd10: Icd10) => {
+  // Handle ICD10 selection - fetch diagnoses and trend
+  const handleSelectIcd10 = async (icd10: Icd10) => {
     setSelectedIcd10(icd10);
-    const diagnosisData = generateDummyDiagnoses(icd10.code);
-    setDiagnoses(diagnosisData);
+    setIsLoadingDiagnoses(true);
+    setIsLoadingTrend(true);
+
+    // Fetch diagnoses and trend in parallel
+    try {
+      const [diagRes, trendRes] = await Promise.all([
+        fetch(`/api/eis/search?type=diagnoses&icd10Id=${icd10.id}&limit=50`),
+        fetch(`/api/eis/search?type=trend&icd10Id=${icd10.id}`)
+      ]);
+
+      const diagData = await diagRes.json();
+      const trendDataRes = await trendRes.json();
+
+      if (diagData.success) {
+        setDiagnoses(diagData.data);
+      }
+      if (trendDataRes.success) {
+        setTrendData(trendDataRes.data);
+      }
+    } catch (error) {
+      console.error('Failed to fetch data:', error);
+    } finally {
+      setIsLoadingDiagnoses(false);
+      setIsLoadingTrend(false);
+    }
   };
 
   // Format date
@@ -279,6 +164,9 @@ export default function CariPage() {
       year: 'numeric'
     });
   };
+
+  // Display items - use search results if searching, otherwise top ICD-10
+  const displayItems = searchQuery ? searchResults : topIcd10;
 
   return (
     <PageContainer>
@@ -309,96 +197,71 @@ export default function CariPage() {
           </CardContent>
         </Card>
 
-        {/* Quick Search Suggestions */}
-        {!searchQuery && !selectedIcd10 && (
+        {/* Quick Search Suggestions / Search Results */}
+        {!selectedIcd10 && (
           <Card>
             <CardHeader>
-              <CardTitle className='text-lg'>Penyakit Umum</CardTitle>
+              <CardTitle className='text-lg'>
+                {searchQuery ? 'Hasil Pencarian' : 'Penyakit Umum'}
+              </CardTitle>
               <CardDescription>
-                Klik untuk melihat detail diagnosa
+                {searchQuery
+                  ? `Ditemukan ${searchResults.length} hasil untuk "${searchQuery}"`
+                  : 'Klik untuk melihat detail diagnosa'}
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className='flex flex-wrap gap-2'>
-                {dummyIcd10Data.map((item) => (
-                  <Button
-                    key={item.id}
-                    variant='outline'
-                    size='sm'
-                    onClick={() => handleSelectIcd10(item)}
-                    className='flex items-center gap-2'
-                  >
-                    <Badge variant='secondary' className='font-mono'>
-                      {item.code}
-                    </Badge>
-                    <span className='max-w-[200px] truncate'>
-                      {item.display}
-                    </span>
-                  </Button>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Search Results */}
-        {searchQuery && searchResults.length > 0 && !selectedIcd10 && (
-          <Card>
-            <CardHeader>
-              <CardTitle className='text-lg'>Hasil Pencarian</CardTitle>
-              <CardDescription>
-                Ditemukan {searchResults.length} hasil untuk "{searchQuery}"
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className='space-y-2'>
-                {searchResults.map((item) => (
-                  <div
-                    key={item.id}
-                    className='hover:bg-accent flex cursor-pointer items-center justify-between rounded-lg border p-4 transition-colors'
-                    onClick={() => handleSelectIcd10(item)}
-                  >
-                    <div className='flex items-center gap-4'>
-                      <div className='bg-primary/10 text-primary flex h-10 w-10 items-center justify-center rounded-full'>
-                        <IconVirus className='h-5 w-5' />
-                      </div>
-                      <div>
-                        <div className='flex items-center gap-2'>
-                          <Badge variant='secondary' className='font-mono'>
-                            {item.code}
-                          </Badge>
-                          <span className='font-medium'>{item.display}</span>
+              {displayItems.length === 0 && !isLoading ? (
+                <div className='py-8 text-center'>
+                  <IconSearch className='text-muted-foreground/50 mx-auto h-12 w-12' />
+                  <h3 className='mt-4 text-lg font-medium'>
+                    {searchQuery ? 'Tidak ditemukan' : 'Belum ada data'}
+                  </h3>
+                  <p className='text-muted-foreground'>
+                    {searchQuery
+                      ? `Tidak ada hasil untuk "${searchQuery}"`
+                      : 'Data ICD-10 belum tersedia di database'}
+                  </p>
+                </div>
+              ) : (
+                <div className='space-y-2'>
+                  {displayItems.map((item) => (
+                    <div
+                      key={item.id}
+                      className='hover:bg-accent flex cursor-pointer items-center justify-between rounded-lg border p-4 transition-colors'
+                      onClick={() => handleSelectIcd10(item)}
+                    >
+                      <div className='flex items-center gap-4'>
+                        <div className='bg-primary/10 text-primary flex h-10 w-10 items-center justify-center rounded-full'>
+                          <IconVirus className='h-5 w-5' />
                         </div>
-                        <p className='text-muted-foreground text-sm'>
-                          Versi: {item.version}
+                        <div>
+                          <div className='flex items-center gap-2'>
+                            <Badge variant='secondary' className='font-mono'>
+                              {item.code}
+                            </Badge>
+                            <span className='font-medium'>{item.display}</span>
+                          </div>
+                          <p className='text-muted-foreground text-sm'>
+                            Versi: {item.version}
+                          </p>
+                        </div>
+                      </div>
+                      <div className='text-right'>
+                        <div className='text-primary flex items-center gap-1'>
+                          <IconChartBar className='h-4 w-4' />
+                          <span className='font-semibold'>
+                            {item._count?.diagnoses || 0}
+                          </span>
+                        </div>
+                        <p className='text-muted-foreground text-xs'>
+                          diagnosa
                         </p>
                       </div>
                     </div>
-                    <div className='text-right'>
-                      <div className='text-primary flex items-center gap-1'>
-                        <IconChartBar className='h-4 w-4' />
-                        <span className='font-semibold'>
-                          {item._count?.diagnoses || 0}
-                        </span>
-                      </div>
-                      <p className='text-muted-foreground text-xs'>diagnosa</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* No Results */}
-        {searchQuery && searchResults.length === 0 && !isLoading && (
-          <Card>
-            <CardContent className='py-12 text-center'>
-              <IconSearch className='text-muted-foreground/50 mx-auto h-12 w-12' />
-              <h3 className='mt-4 text-lg font-medium'>Tidak ditemukan</h3>
-              <p className='text-muted-foreground'>
-                Tidak ada hasil untuk "{searchQuery}"
-              </p>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
         )}
@@ -413,6 +276,7 @@ export default function CariPage() {
                 onClick={() => {
                   setSelectedIcd10(null);
                   setDiagnoses([]);
+                  setTrendData([]);
                 }}
               >
                 ← Kembali ke pencarian
@@ -470,48 +334,63 @@ export default function CariPage() {
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <div className='space-y-3'>
-                      {diagnoses.map((diag) => (
-                        <div
-                          key={diag.id}
-                          className='flex items-center justify-between rounded-lg border p-4'
-                        >
-                          <div className='flex items-center gap-4'>
-                            <div
-                              className={`flex h-10 w-10 items-center justify-center rounded-full ${
-                                diag.pasienGender === 'L'
-                                  ? 'bg-blue-100 text-blue-600'
-                                  : 'bg-pink-100 text-pink-600'
-                              }`}
-                            >
-                              <IconUser className='h-5 w-5' />
+                    {isLoadingDiagnoses ? (
+                      <div className='space-y-3'>
+                        {[1, 2, 3].map((i) => (
+                          <div
+                            key={i}
+                            className='bg-muted h-20 animate-pulse rounded-lg'
+                          />
+                        ))}
+                      </div>
+                    ) : diagnoses.length === 0 ? (
+                      <div className='text-muted-foreground py-8 text-center'>
+                        Tidak ada data diagnosa
+                      </div>
+                    ) : (
+                      <div className='space-y-3'>
+                        {diagnoses.map((diag) => (
+                          <div
+                            key={diag.id}
+                            className='flex items-center justify-between rounded-lg border p-4'
+                          >
+                            <div className='flex items-center gap-4'>
+                              <div
+                                className={`flex h-10 w-10 items-center justify-center rounded-full ${
+                                  diag.pasienGender === 'L'
+                                    ? 'bg-blue-100 text-blue-600'
+                                    : 'bg-pink-100 text-pink-600'
+                                }`}
+                              >
+                                <IconUser className='h-5 w-5' />
+                              </div>
+                              <div>
+                                <p className='font-medium'>{diag.pasienNama}</p>
+                                <div className='text-muted-foreground flex items-center gap-2 text-sm'>
+                                  <span>
+                                    {diag.pasienGender === 'L'
+                                      ? 'Laki-laki'
+                                      : 'Perempuan'}
+                                  </span>
+                                  <span>•</span>
+                                  <span>{diag.pasienUmur} tahun</span>
+                                </div>
+                              </div>
                             </div>
-                            <div>
-                              <p className='font-medium'>{diag.pasienNama}</p>
-                              <div className='text-muted-foreground flex items-center gap-2 text-sm'>
-                                <span>
-                                  {diag.pasienGender === 'L'
-                                    ? 'Laki-laki'
-                                    : 'Perempuan'}
-                                </span>
-                                <span>•</span>
-                                <span>{diag.pasienUmur} tahun</span>
+                            <div className='text-right'>
+                              <div className='flex items-center gap-1 text-sm'>
+                                <IconBuilding className='text-muted-foreground h-4 w-4' />
+                                <span>{diag.puskesmas}</span>
+                              </div>
+                              <div className='text-muted-foreground flex items-center gap-1 text-sm'>
+                                <IconCalendar className='h-4 w-4' />
+                                <span>{formatDate(diag.tanggalPeriksa)}</span>
                               </div>
                             </div>
                           </div>
-                          <div className='text-right'>
-                            <div className='flex items-center gap-1 text-sm'>
-                              <IconBuilding className='text-muted-foreground h-4 w-4' />
-                              <span>{diag.puskesmas}</span>
-                            </div>
-                            <div className='text-muted-foreground flex items-center gap-1 text-sm'>
-                              <IconCalendar className='h-4 w-4' />
-                              <span>{formatDate(diag.tanggalPeriksa)}</span>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
+                        ))}
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
               </TabsContent>
@@ -529,7 +408,7 @@ export default function CariPage() {
                         {diagnoses.length}
                       </div>
                       <p className='text-muted-foreground text-xs'>
-                        30 hari terakhir
+                        Data tersedia
                       </p>
                     </CardContent>
                   </Card>
@@ -544,13 +423,9 @@ export default function CariPage() {
                         {diagnoses.filter((d) => d.pasienGender === 'L').length}
                       </div>
                       <p className='text-muted-foreground text-xs'>
-                        {(
-                          (diagnoses.filter((d) => d.pasienGender === 'L')
-                            .length /
-                            diagnoses.length) *
-                          100
-                        ).toFixed(1)}
-                        %
+                        {diagnoses.length > 0
+                          ? `${((diagnoses.filter((d) => d.pasienGender === 'L').length / diagnoses.length) * 100).toFixed(1)}%`
+                          : '0%'}
                       </p>
                     </CardContent>
                   </Card>
@@ -565,17 +440,76 @@ export default function CariPage() {
                         {diagnoses.filter((d) => d.pasienGender === 'P').length}
                       </div>
                       <p className='text-muted-foreground text-xs'>
-                        {(
-                          (diagnoses.filter((d) => d.pasienGender === 'P')
-                            .length /
-                            diagnoses.length) *
-                          100
-                        ).toFixed(1)}
-                        %
+                        {diagnoses.length > 0
+                          ? `${((diagnoses.filter((d) => d.pasienGender === 'P').length / diagnoses.length) * 100).toFixed(1)}%`
+                          : '0%'}
                       </p>
                     </CardContent>
                   </Card>
                 </div>
+
+                {/* Trend Chart */}
+                <Card className='mt-4'>
+                  <CardHeader>
+                    <CardTitle className='flex items-center gap-2 text-lg'>
+                      <IconTrendingUp className='h-5 w-5' />
+                      Trend Kasus (90 Hari Terakhir)
+                    </CardTitle>
+                    <CardDescription>
+                      Jumlah kasus per minggu berdasarkan jenis kelamin
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    {isLoadingTrend ? (
+                      <div className='bg-muted h-[300px] animate-pulse rounded-lg' />
+                    ) : trendData.length === 0 ? (
+                      <div className='text-muted-foreground flex h-[300px] items-center justify-center'>
+                        Tidak ada data trend
+                      </div>
+                    ) : (
+                      <ResponsiveContainer width='100%' height={300}>
+                        <AreaChart data={trendData}>
+                          <CartesianGrid
+                            strokeDasharray='3 3'
+                            className='stroke-muted'
+                          />
+                          <XAxis
+                            dataKey='minggu'
+                            className='text-xs'
+                            tick={{ fontSize: 11 }}
+                          />
+                          <YAxis className='text-xs' tick={{ fontSize: 11 }} />
+                          <Tooltip
+                            contentStyle={{
+                              backgroundColor: 'hsl(var(--card))',
+                              border: '1px solid hsl(var(--border))',
+                              borderRadius: '8px'
+                            }}
+                          />
+                          <Legend />
+                          <Area
+                            type='monotone'
+                            dataKey='laki'
+                            name='Laki-laki'
+                            stackId='1'
+                            stroke='#3b82f6'
+                            fill='#3b82f6'
+                            fillOpacity={0.6}
+                          />
+                          <Area
+                            type='monotone'
+                            dataKey='perempuan'
+                            name='Perempuan'
+                            stackId='1'
+                            stroke='#ec4899'
+                            fill='#ec4899'
+                            fillOpacity={0.6}
+                          />
+                        </AreaChart>
+                      </ResponsiveContainer>
+                    )}
+                  </CardContent>
+                </Card>
 
                 <Card className='mt-4'>
                   <CardHeader>
@@ -630,40 +564,43 @@ export default function CariPage() {
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className='space-y-3'>
-                      {Object.entries(
-                        diagnoses.reduce(
-                          (acc, d) => {
-                            acc[d.puskesmas] = (acc[d.puskesmas] || 0) + 1;
-                            return acc;
-                          },
-                          {} as Record<string, number>
+                    {diagnoses.length === 0 ? (
+                      <div className='text-muted-foreground py-4 text-center'>
+                        Tidak ada data
+                      </div>
+                    ) : (
+                      <div className='space-y-3'>
+                        {Object.entries(
+                          diagnoses.reduce(
+                            (acc, d) => {
+                              acc[d.puskesmas] = (acc[d.puskesmas] || 0) + 1;
+                              return acc;
+                            },
+                            {} as Record<string, number>
+                          )
                         )
-                      )
-                        .sort((a, b) => b[1] - a[1])
-                        .map(([puskesmas, count]) => {
-                          const percentage =
-                            diagnoses.length > 0
-                              ? (count / diagnoses.length) * 100
-                              : 0;
-                          return (
-                            <div key={puskesmas} className='space-y-1'>
-                              <div className='flex justify-between text-sm'>
-                                <span>{puskesmas}</span>
-                                <span className='font-medium'>
-                                  {count} ({percentage.toFixed(1)}%)
-                                </span>
+                          .sort((a, b) => b[1] - a[1])
+                          .map(([puskesmas, count]) => {
+                            const percentage = (count / diagnoses.length) * 100;
+                            return (
+                              <div key={puskesmas} className='space-y-1'>
+                                <div className='flex justify-between text-sm'>
+                                  <span>{puskesmas}</span>
+                                  <span className='font-medium'>
+                                    {count} ({percentage.toFixed(1)}%)
+                                  </span>
+                                </div>
+                                <div className='bg-muted h-2 overflow-hidden rounded-full'>
+                                  <div
+                                    className='bg-primary h-full rounded-full transition-all'
+                                    style={{ width: `${percentage}%` }}
+                                  />
+                                </div>
                               </div>
-                              <div className='bg-muted h-2 overflow-hidden rounded-full'>
-                                <div
-                                  className='bg-primary h-full rounded-full transition-all'
-                                  style={{ width: `${percentage}%` }}
-                                />
-                              </div>
-                            </div>
-                          );
-                        })}
-                    </div>
+                            );
+                          })}
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
               </TabsContent>

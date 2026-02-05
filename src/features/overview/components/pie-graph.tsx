@@ -18,11 +18,8 @@ import {
   ChartTooltip,
   ChartTooltipContent
 } from '@/components/ui/chart';
-
-const chartData = [
-  { gender: 'lakiLaki', pasien: 22345, fill: 'var(--primary)' },
-  { gender: 'perempuan', pasien: 23333, fill: 'var(--primary-light)' }
-];
+import { Skeleton } from '@/components/ui/skeleton';
+import { useOverviewData } from '@/hooks/use-eis-data';
 
 const chartConfig = {
   pasien: {
@@ -39,13 +36,61 @@ const chartConfig = {
 } satisfies ChartConfig;
 
 export function PieGraph() {
+  const { data, isLoading } = useOverviewData();
+
+  const chartData = React.useMemo(() => {
+    // Calculate gender totals from distribusiUsia
+    if (!data?.distribusiUsia || data.distribusiUsia.length === 0) {
+      return [
+        { gender: 'lakiLaki', pasien: 0, fill: 'var(--primary)' },
+        { gender: 'perempuan', pasien: 0, fill: 'var(--primary-light)' }
+      ];
+    }
+
+    const totalLaki = data.distribusiUsia.reduce(
+      (acc: number, curr: any) => acc + (curr.laki || 0),
+      0
+    );
+    const totalPerempuan = data.distribusiUsia.reduce(
+      (acc: number, curr: any) => acc + (curr.perempuan || 0),
+      0
+    );
+
+    return [
+      { gender: 'lakiLaki', pasien: totalLaki, fill: 'var(--primary)' },
+      {
+        gender: 'perempuan',
+        pasien: totalPerempuan,
+        fill: 'var(--primary-light)'
+      }
+    ];
+  }, [data]);
+
   const totalPasien = React.useMemo(() => {
     return chartData.reduce((acc, curr) => acc + curr.pasien, 0);
-  }, []);
+  }, [chartData]);
 
-  const perempuanPercent = ((chartData[1].pasien / totalPasien) * 100).toFixed(
-    1
-  );
+  const perempuanPercent =
+    totalPasien > 0
+      ? ((chartData[1].pasien / totalPasien) * 100).toFixed(1)
+      : '0';
+
+  if (isLoading) {
+    return (
+      <Card className='@container/card'>
+        <CardHeader>
+          <CardTitle>Distribusi Gender</CardTitle>
+          <CardDescription>Loading...</CardDescription>
+        </CardHeader>
+        <CardContent className='flex items-center justify-center px-2 pt-4 sm:px-6 sm:pt-6'>
+          <Skeleton className='h-[250px] w-[250px] rounded-full' />
+        </CardContent>
+        <CardFooter className='flex-col gap-2 text-sm'>
+          <Skeleton className='h-4 w-48' />
+        </CardFooter>
+      </Card>
+    );
+  }
 
   return (
     <Card className='@container/card'>
