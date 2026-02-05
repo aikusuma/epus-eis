@@ -138,7 +138,7 @@ export async function GET(
     const icd10Codes = topDiseases.map((d) => d.icd10_code);
     const icd10Details = await db.icd10.findMany({
       where: { code: { in: icd10Codes } },
-      select: { code: true, name: true, groupName: true }
+      select: { code: true, display: true, version: true }
     });
     type Icd10Detail = (typeof icd10Details)[number];
     const icd10Map = new Map<string, Icd10Detail>(
@@ -227,8 +227,8 @@ export async function GET(
       },
       topPenyakit: topDiseases.map((d) => ({
         icd10Code: d.icd10_code,
-        icd10Name: icd10Map.get(d.icd10_code)?.name ?? d.icd10_code,
-        groupName: icd10Map.get(d.icd10_code)?.groupName,
+        icd10Name: icd10Map.get(d.icd10_code)?.display ?? d.icd10_code,
+        version: icd10Map.get(d.icd10_code)?.version,
         total: Number(d.total)
       })),
       distribusiLayanan: layananDist.map((d) => ({
