@@ -194,13 +194,111 @@ const getMonthlyTrendByIcd10 = unstable_cache(
   { revalidate: 300 }
 );
 
+// Get overall disease trend for top 5 ICD-10 (last 6 months)
+const getOverallDiseaseTrend = unstable_cache(
+  async () => {
+    const startDate = new Date();
+    startDate.setMonth(startDate.getMonth() - 6);
+
+    // Get top 5 ICD-10 codes by diagnosis count
+    const topIcd10 = await prisma.icd10.findMany({
+      include: {
+        _count: { select: { diagnoses: true } }
+      },
+      take: 100
+    });
+
+    const top5 = topIcd10
+      .sort(
+        (a: any, b: any) =>
+          (b._count?.diagnoses || 0) - (a._count?.diagnoses || 0)
+      )
+      .slice(0, 5);
+
+    // Get diagnoses for each top 5 ICD-10 grouped by month
+    const monthlyData: Record<string, Record<string, number>> = {};
+    const monthNames = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'Mei',
+      'Jun',
+      'Jul',
+      'Ags',
+      'Sep',
+      'Okt',
+      'Nov',
+      'Des'
+    ];
+
+    // Initialize all months with all diseases at 0
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date();
+      d.setMonth(d.getMonth() - i);
+      const monthKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+      monthlyData[monthKey] = {};
+      for (const icd of top5) {
+        monthlyData[monthKey][icd.code] = 0;
+      }
+    }
+
+    for (const icd of top5) {
+      const diagnoses = await prisma.diagnosisDummy.findMany({
+        where: {
+          icd10Id: icd.id,
+          tanggalPeriksa: { gte: startDate }
+        },
+        select: { tanggalPeriksa: true }
+      });
+
+      diagnoses.forEach((d: any) => {
+        const date = new Date(d.tanggalPeriksa);
+        const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+
+        if (monthlyData[monthKey]) {
+          monthlyData[monthKey][icd.code]++;
+        }
+      });
+    }
+
+    // Convert to array format for chart
+    const result = Object.entries(monthlyData)
+      .map(([date, diseases]) => {
+        const [year, month] = date.split('-');
+        return {
+          date,
+          bulan: `${monthNames[parseInt(month) - 1]} ${year.slice(2)}`,
+          ...diseases
+        };
+      })
+      .sort((a, b) => a.date.localeCompare(b.date));
+
+    return {
+      data: result,
+      diseases: top5.map((i: any) => ({ code: i.code, display: i.display }))
+    };
+  },
+  ['overall-disease-trend'],
+  { revalidate: 300 }
+);
+
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
     const query = searchParams.get('q') || '';
     const icd10Id = searchParams.get('icd10Id');
-    const type = searchParams.get('type') || 'search'; // 'search', 'top', 'diagnoses'
+    const type = searchParams.get('type') || 'search'; // 'search', 'top', 'diagnoses', 'overall-trend'
     const limit = parseInt(searchParams.get('limit') || '20');
+
+    // Get overall disease trend for top 5 ICD-10
+    if (type === 'overall-trend') {
+      const trend = await getOverallDiseaseTrend();
+      return NextResponse.json({
+        success: true,
+        ...trend
+      });
+    }
 
     // Get diagnoses for specific ICD-10
     if (type === 'diagnoses' && icd10Id) {

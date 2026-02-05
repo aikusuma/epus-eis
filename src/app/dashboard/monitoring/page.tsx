@@ -151,23 +151,40 @@ export default function MonitoringPage() {
 
   const sebaranPasienData = useMemo(() => {
     if (!data?.kunjunganByDesa) return [];
-    return data.kunjunganByDesa.map((item: any, index: number) => ({
-      id: index + 1,
-      lat: item.lat || -6.8748 + (Math.random() - 0.5) * 0.1,
-      lng: item.lng || 109.0526 + (Math.random() - 0.5) * 0.1,
-      desa: item.desa,
-      bayi_l: Math.floor(item.jumlah * 0.05),
-      bayi_p: Math.floor(item.jumlah * 0.06),
-      anak_l: Math.floor(item.jumlah * 0.12),
-      anak_p: Math.floor(item.jumlah * 0.13),
-      remaja_l: Math.floor(item.jumlah * 0.1),
-      remaja_p: Math.floor(item.jumlah * 0.11),
-      dewasa_l: Math.floor(item.jumlah * 0.18),
-      dewasa_p: Math.floor(item.jumlah * 0.2),
-      lansia_l: Math.floor(item.jumlah * 0.07),
-      lansia_p: Math.floor(item.jumlah * 0.08)
-    }));
+    return data.kunjunganByDesa.map((item: any, index: number) => {
+      const total = (item.laki || 0) + (item.perempuan || 0);
+      return {
+        id: index + 1,
+        lat: item.lat || -6.8748 + (Math.random() - 0.5) * 0.1,
+        lng: item.lng || 109.0526 + (Math.random() - 0.5) * 0.1,
+        desa: item.desa,
+        total,
+        bayi_l: Math.floor(total * 0.05),
+        bayi_p: Math.floor(total * 0.06),
+        anak_l: Math.floor(total * 0.12),
+        anak_p: Math.floor(total * 0.13),
+        remaja_l: Math.floor(total * 0.1),
+        remaja_p: Math.floor(total * 0.11),
+        dewasa_l: Math.floor(total * 0.18),
+        dewasa_p: Math.floor(total * 0.2),
+        lansia_l: Math.floor(total * 0.07),
+        lansia_p: Math.floor(total * 0.08)
+      };
+    });
   }, [data?.kunjunganByDesa]);
+
+  // Heatmap data for Siklus Hidup visualization
+  const heatmapData = useMemo(() => {
+    if (!sebaranPasienData.length) return [];
+    return sebaranPasienData.slice(0, 10).map((item: any) => ({
+      desa: item.desa,
+      Bayi: item.bayi_l + item.bayi_p,
+      Anak: item.anak_l + item.anak_p,
+      Remaja: item.remaja_l + item.remaja_p,
+      Dewasa: item.dewasa_l + item.dewasa_p,
+      Lansia: item.lansia_l + item.lansia_p
+    }));
+  }, [sebaranPasienData]);
 
   // Calculate total per siklus hidup
   const totalByGender = siklusHidupSummary.reduce(
@@ -424,6 +441,194 @@ export default function MonitoringPage() {
                   <span>{item.name}</span>
                 </div>
               ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Heatmap Section - Sebaran Data Pasien */}
+        <Card>
+          <CardHeader>
+            <CardTitle className='flex items-center gap-2'>
+              <IconFriends className='h-5 w-5' />
+              Heatmap Siklus Hidup per Desa
+            </CardTitle>
+            <CardDescription>
+              Visualisasi distribusi pasien berdasarkan kelompok umur di setiap
+              desa
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {heatmapData.length > 0 ? (
+              <div className='overflow-x-auto'>
+                <table className='w-full border-collapse'>
+                  <thead>
+                    <tr>
+                      <th className='bg-muted border p-2 text-left font-medium'>
+                        Desa
+                      </th>
+                      <th
+                        className='border p-2 text-center font-medium'
+                        style={{ backgroundColor: '#fce7f3' }}
+                      >
+                        Bayi
+                      </th>
+                      <th
+                        className='border p-2 text-center font-medium'
+                        style={{ backgroundColor: '#ffedd5' }}
+                      >
+                        Anak
+                      </th>
+                      <th
+                        className='border p-2 text-center font-medium'
+                        style={{ backgroundColor: '#fef9c3' }}
+                      >
+                        Remaja
+                      </th>
+                      <th
+                        className='border p-2 text-center font-medium'
+                        style={{ backgroundColor: '#dcfce7' }}
+                      >
+                        Dewasa
+                      </th>
+                      <th
+                        className='border p-2 text-center font-medium'
+                        style={{ backgroundColor: '#dbeafe' }}
+                      >
+                        Lansia
+                      </th>
+                      <th className='bg-muted border p-2 text-center font-medium'>
+                        Total
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {heatmapData.map((row: any, index: number) => {
+                      const total =
+                        row.Bayi +
+                        row.Anak +
+                        row.Remaja +
+                        row.Dewasa +
+                        row.Lansia;
+                      const maxVal = Math.max(
+                        row.Bayi,
+                        row.Anak,
+                        row.Remaja,
+                        row.Dewasa,
+                        row.Lansia
+                      );
+                      const getOpacity = (val: number) =>
+                        Math.max(0.2, val / (maxVal || 1));
+
+                      return (
+                        <tr key={index} className='hover:bg-muted/50'>
+                          <td className='border p-2 font-medium'>{row.desa}</td>
+                          <td
+                            className='border p-2 text-center'
+                            style={{
+                              backgroundColor: `rgba(236, 72, 153, ${getOpacity(row.Bayi)})`
+                            }}
+                          >
+                            {row.Bayi}
+                          </td>
+                          <td
+                            className='border p-2 text-center'
+                            style={{
+                              backgroundColor: `rgba(249, 115, 22, ${getOpacity(row.Anak)})`
+                            }}
+                          >
+                            {row.Anak}
+                          </td>
+                          <td
+                            className='border p-2 text-center'
+                            style={{
+                              backgroundColor: `rgba(234, 179, 8, ${getOpacity(row.Remaja)})`
+                            }}
+                          >
+                            {row.Remaja}
+                          </td>
+                          <td
+                            className='border p-2 text-center'
+                            style={{
+                              backgroundColor: `rgba(34, 197, 94, ${getOpacity(row.Dewasa)})`
+                            }}
+                          >
+                            {row.Dewasa}
+                          </td>
+                          <td
+                            className='border p-2 text-center'
+                            style={{
+                              backgroundColor: `rgba(59, 130, 246, ${getOpacity(row.Lansia)})`
+                            }}
+                          >
+                            {row.Lansia}
+                          </td>
+                          <td className='bg-muted border p-2 text-center font-bold'>
+                            {total}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <div className='text-muted-foreground py-8 text-center'>
+                Tidak ada data heatmap
+              </div>
+            )}
+
+            {/* Heatmap Legend */}
+            <div className='mt-4 flex flex-wrap gap-4 text-sm'>
+              <div className='flex items-center gap-2'>
+                <div
+                  className='h-4 w-8 rounded'
+                  style={{
+                    background:
+                      'linear-gradient(to right, rgba(236, 72, 153, 0.2), rgba(236, 72, 153, 1))'
+                  }}
+                />
+                <span>Bayi (0-1 th)</span>
+              </div>
+              <div className='flex items-center gap-2'>
+                <div
+                  className='h-4 w-8 rounded'
+                  style={{
+                    background:
+                      'linear-gradient(to right, rgba(249, 115, 22, 0.2), rgba(249, 115, 22, 1))'
+                  }}
+                />
+                <span>Anak (2-11 th)</span>
+              </div>
+              <div className='flex items-center gap-2'>
+                <div
+                  className='h-4 w-8 rounded'
+                  style={{
+                    background:
+                      'linear-gradient(to right, rgba(234, 179, 8, 0.2), rgba(234, 179, 8, 1))'
+                  }}
+                />
+                <span>Remaja (12-17 th)</span>
+              </div>
+              <div className='flex items-center gap-2'>
+                <div
+                  className='h-4 w-8 rounded'
+                  style={{
+                    background:
+                      'linear-gradient(to right, rgba(34, 197, 94, 0.2), rgba(34, 197, 94, 1))'
+                  }}
+                />
+                <span>Dewasa (18-59 th)</span>
+              </div>
+              <div className='flex items-center gap-2'>
+                <div
+                  className='h-4 w-8 rounded'
+                  style={{
+                    background:
+                      'linear-gradient(to right, rgba(59, 130, 246, 0.2), rgba(59, 130, 246, 1))'
+                  }}
+                />
+                <span>Lansia (60+ th)</span>
+              </div>
             </div>
           </CardContent>
         </Card>

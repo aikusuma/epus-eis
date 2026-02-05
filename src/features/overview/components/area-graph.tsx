@@ -22,6 +22,7 @@ import {
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { useOverviewData } from '@/hooks/use-eis-data';
+import { useOverviewFilterParams } from '@/features/overview/context/overview-filter-context';
 
 // Note: This chart uses monthly trend data
 // Currently using klaster1 data which has disease trends
@@ -41,7 +42,8 @@ const chartConfig = {
 } satisfies ChartConfig;
 
 export function AreaGraph() {
-  const { data, isLoading } = useOverviewData();
+  const filters = useOverviewFilterParams();
+  const { data, isLoading } = useOverviewData(filters);
 
   // Transform data for chart - use trend data from overview
   const chartData = React.useMemo(() => {
@@ -61,22 +63,22 @@ export function AreaGraph() {
 
   if (isLoading) {
     return (
-      <Card className='@container/card'>
+      <Card className='@container/card flex h-full w-full flex-col'>
         <CardHeader>
           <CardTitle>Tren Penyakit Utama</CardTitle>
           <CardDescription>Loading...</CardDescription>
         </CardHeader>
-        <CardContent className='px-2 pt-4 sm:px-6 sm:pt-6'>
+        <CardContent className='flex-1 px-2 pt-4 sm:px-6 sm:pt-6'>
           <Skeleton className='h-[250px] w-full' />
         </CardContent>
-        <CardFooter>
+        <CardFooter className='mt-auto'>
           <Skeleton className='h-8 w-48' />
         </CardFooter>
       </Card>
     );
   }
   return (
-    <Card className='@container/card'>
+    <Card className='@container/card flex h-full w-full flex-col'>
       <CardHeader>
         <CardTitle>Tren Penyakit Utama</CardTitle>
         <CardDescription>
@@ -151,7 +153,7 @@ export function AreaGraph() {
           </AreaChart>
         </ChartContainer>
       </CardContent>
-      <CardFooter>
+      <CardFooter className='flex-col gap-2'>
         <div className='flex w-full items-start gap-2 text-sm'>
           <div className='grid gap-2'>
             <div className='flex items-center gap-2 leading-none font-medium'>
@@ -162,13 +164,13 @@ export function AreaGraph() {
               Feb 2024 - Jan 2025
             </div>
           </div>
-          <div className='ml-auto'>
-            <Button variant='outline' size='sm' asChild>
-              <Link href='/dashboard/laporan?report=penyakit'>
-                Lihat Lebih Lanjut →
-              </Link>
-            </Button>
-          </div>
+        </div>
+        <div className='mt-2 w-full border-t pt-4'>
+          <Button variant='outline' size='sm' className='w-full' asChild>
+            <Link href='/dashboard/laporan?report=penyakit'>
+              Lihat Lebih Lanjut →
+            </Link>
+          </Button>
         </div>
       </CardFooter>
     </Card>

@@ -22,6 +22,7 @@ import {
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { useOverviewData } from '@/hooks/use-eis-data';
+import { useOverviewFilterParams } from '@/features/overview/context/overview-filter-context';
 
 const chartConfig = {
   pasien: {
@@ -38,7 +39,8 @@ const chartConfig = {
 } satisfies ChartConfig;
 
 export function PieGraph() {
-  const { data, isLoading } = useOverviewData();
+  const filters = useOverviewFilterParams();
+  const { data, isLoading } = useOverviewData(filters);
 
   const chartData = React.useMemo(() => {
     // Calculate gender totals from distribusiUsia
@@ -79,15 +81,15 @@ export function PieGraph() {
 
   if (isLoading) {
     return (
-      <Card className='@container/card'>
+      <Card className='@container/card flex h-full w-full flex-col'>
         <CardHeader>
           <CardTitle>Distribusi Gender</CardTitle>
           <CardDescription>Loading...</CardDescription>
         </CardHeader>
-        <CardContent className='flex items-center justify-center px-2 pt-4 sm:px-6 sm:pt-6'>
+        <CardContent className='flex flex-1 items-center justify-center px-2 pt-4 sm:px-6 sm:pt-6'>
           <Skeleton className='h-[250px] w-[250px] rounded-full' />
         </CardContent>
-        <CardFooter className='flex-col gap-2 text-sm'>
+        <CardFooter className='mt-auto flex-col gap-2 text-sm'>
           <Skeleton className='h-4 w-48' />
         </CardFooter>
       </Card>
@@ -95,7 +97,7 @@ export function PieGraph() {
   }
 
   return (
-    <Card className='@container/card'>
+    <Card className='@container/card flex h-full w-full flex-col'>
       <CardHeader>
         <CardTitle>Distribusi Gender</CardTitle>
         <CardDescription>
@@ -164,7 +166,7 @@ export function PieGraph() {
                           y={viewBox.cy}
                           className='fill-foreground text-3xl font-bold'
                         >
-                          {totalPasien.toLocaleString('id-ID')}
+                          {(totalPasien || 0).toLocaleString('id-ID')}
                         </tspan>
                         <tspan
                           x={viewBox.cx}
@@ -182,7 +184,7 @@ export function PieGraph() {
           </PieChart>
         </ChartContainer>
       </CardContent>
-      <CardFooter className='flex-col gap-2 text-sm'>
+      <CardFooter className='mt-auto flex-col gap-2 text-sm'>
         <div className='flex items-center gap-2 leading-none font-medium'>
           <IconVenus className='h-4 w-4' />
           Perempuan: {perempuanPercent}%<span className='mx-2'>|</span>
@@ -190,7 +192,7 @@ export function PieGraph() {
           Laki-laki: {(100 - parseFloat(perempuanPercent)).toFixed(1)}%
         </div>
         <div className='text-muted-foreground leading-none'>Data bulan ini</div>
-        <div className='mt-3 w-full'>
+        <div className='mt-2 w-full border-t pt-4'>
           <Button variant='outline' size='sm' className='w-full' asChild>
             <Link href='/dashboard/laporan?report=kunjungan'>
               Lihat Lebih Lanjut →

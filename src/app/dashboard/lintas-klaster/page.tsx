@@ -89,10 +89,7 @@ export default function LintasKlasterPage() {
   const gawatDaruratData = useMemo(() => {
     if (!data?.gawatDarurat?.data) return [];
     return data.gawatDarurat.data.map((item: any) => ({
-      tanggal: new Date(item.tanggal).toLocaleDateString('id-ID', {
-        day: 'numeric',
-        month: 'short'
-      }),
+      tanggal: item.tanggal,
       kunjungan: item.totalKunjungan,
       triase_merah: item.triaseMerah,
       triase_kuning: item.triaseKuning,
@@ -103,10 +100,7 @@ export default function LintasKlasterPage() {
   const farmasiData = useMemo(() => {
     if (!data?.farmasi?.data) return [];
     return data.farmasi.data.map((item: any) => ({
-      tanggal: new Date(item.tanggal).toLocaleDateString('id-ID', {
-        day: 'numeric',
-        month: 'short'
-      }),
+      tanggal: item.tanggal,
       resep: item.jumlahResep,
       obat_keluar: item.obatKeluar,
       racikan: item.racikan
@@ -116,10 +110,7 @@ export default function LintasKlasterPage() {
   const laboratoriumData = useMemo(() => {
     if (!data?.laboratorium?.data) return [];
     return data.laboratorium.data.map((item: any) => ({
-      tanggal: new Date(item.tanggal).toLocaleDateString('id-ID', {
-        day: 'numeric',
-        month: 'short'
-      }),
+      tanggal: item.tanggal,
       pemeriksaan: item.totalPemeriksaan,
       hematologi: item.hematologi,
       kimia_darah: item.kimiaDarah,
@@ -131,10 +122,7 @@ export default function LintasKlasterPage() {
   const rawatInapData = useMemo(() => {
     if (!data?.rawatInap?.data) return [];
     return data.rawatInap.data.map((item: any) => ({
-      tanggal: new Date(item.tanggal).toLocaleDateString('id-ID', {
-        day: 'numeric',
-        month: 'short'
-      }),
+      tanggal: item.tanggal,
       pasien_masuk: item.pasienMasuk,
       pasien_keluar: item.pasienKeluar,
       bed_terpakai: item.bedTerpakai,

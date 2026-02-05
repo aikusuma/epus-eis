@@ -20,6 +20,7 @@ import {
 } from '@/components/ui/chart';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useOverviewData } from '@/hooks/use-eis-data';
+import { useOverviewFilterParams } from '@/features/overview/context/overview-filter-context';
 
 export const description = 'Grafik kunjungan pasien';
 
@@ -38,7 +39,8 @@ const chartConfig = {
 } satisfies ChartConfig;
 
 export function BarGraph() {
-  const { data, isLoading } = useOverviewData();
+  const filters = useOverviewFilterParams();
+  const { data, isLoading } = useOverviewData(filters);
 
   const [activeChart, setActiveChart] =
     React.useState<keyof typeof chartConfig>('rawatJalan');
@@ -81,14 +83,14 @@ export function BarGraph() {
 
   if (isLoading) {
     return (
-      <Card className='@container/card !pt-3'>
+      <Card className='@container/card flex h-full w-full flex-col !pt-3'>
         <CardHeader className='flex flex-col items-stretch space-y-0 border-b !p-0 sm:flex-row'>
           <div className='flex flex-1 flex-col justify-center gap-1 px-6 !py-0'>
             <CardTitle>Kunjungan</CardTitle>
             <CardDescription>Loading...</CardDescription>
           </div>
         </CardHeader>
-        <CardContent className='px-2 pt-4 sm:px-6 sm:pt-6'>
+        <CardContent className='flex-1 px-2 pt-4 sm:px-6 sm:pt-6'>
           <Skeleton className='h-[250px] w-full' />
         </CardContent>
       </Card>
@@ -96,7 +98,7 @@ export function BarGraph() {
   }
 
   return (
-    <Card className='@container/card !pt-3'>
+    <Card className='@container/card flex h-full w-full flex-col !pt-3'>
       <CardHeader className='flex flex-col items-stretch space-y-0 border-b !p-0 sm:flex-row'>
         <div className='flex flex-1 flex-col justify-center gap-1 px-6 !py-0'>
           <CardTitle>Data Kunjungan</CardTitle>
@@ -121,14 +123,14 @@ export function BarGraph() {
                   {chartConfig[chart].label}
                 </span>
                 <span className='text-lg leading-none font-bold sm:text-3xl'>
-                  {total[key]?.toLocaleString('id-ID')}
+                  {(total[key] || 0).toLocaleString('id-ID')}
                 </span>
               </button>
             );
           })}
         </div>
       </CardHeader>
-      <CardContent className='px-2 pt-4 sm:px-6 sm:pt-6'>
+      <CardContent className='flex flex-1 flex-col px-2 pt-4 sm:px-6 sm:pt-6'>
         <ChartContainer
           config={chartConfig}
           className='aspect-auto h-[250px] w-full'
@@ -185,7 +187,7 @@ export function BarGraph() {
             />
           </BarChart>
         </ChartContainer>
-        <div className='mt-4 border-t pt-3'>
+        <div className='mt-auto border-t pt-4'>
           <Button variant='outline' size='sm' className='w-full' asChild>
             <Link href='/dashboard/laporan?report=kunjungan'>
               Lihat Lebih Lanjut →

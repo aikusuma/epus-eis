@@ -453,9 +453,9 @@ export const getTopDiagnosa = unstable_cache(
     });
 
     return data.map((item: any) => ({
-      kode: item.icd10Code,
-      diagnosa: item.diagnosa,
-      jumlah: item._sum.jumlahKasus || 0
+      kodeIcd: item.icd10Code,
+      nama: item.diagnosa,
+      jumlahKasus: item._sum.jumlahKasus || 0
     }));
   },
   ['top-diagnosa'],
@@ -534,10 +534,10 @@ export const getGawatDarurat = unstable_cache(
         day: 'numeric',
         month: 'short'
       }),
-      kunjungan: item.triaseMerah + item.triaseKuning + item.triaseHijau,
-      triase_merah: item.triaseMerah,
-      triase_kuning: item.triaseKuning,
-      triase_hijau: item.triaseHijau
+      totalKunjungan: item.triaseMerah + item.triaseKuning + item.triaseHijau,
+      triaseMerah: item.triaseMerah,
+      triaseKuning: item.triaseKuning,
+      triaseHijau: item.triaseHijau
     }));
   },
   ['gawat-darurat'],
@@ -573,7 +573,7 @@ export const getGawatDaruratSummary = unstable_cache(
       (data._sum.triaseHijau || 0);
 
     return {
-      total,
+      totalKunjungan: total,
       triaseMerah: data._sum.triaseMerah || 0,
       triaseKuning: data._sum.triaseKuning || 0,
       triaseHijau: data._sum.triaseHijau || 0
@@ -607,8 +607,8 @@ export const getFarmasi = unstable_cache(
         day: 'numeric',
         month: 'short'
       }),
-      resep: item.jumlahResep,
-      obat_keluar: item.obatKeluar,
+      jumlahResep: item.jumlahResep,
+      obatKeluar: item.obatKeluar,
       racikan: item.racikan
     }));
   },
@@ -641,7 +641,7 @@ export const getFarmasiSummary = unstable_cache(
 
     return {
       totalResep: data._sum.jumlahResep || 0,
-      totalObat: data._sum.obatKeluar || 0,
+      totalObatKeluar: data._sum.obatKeluar || 0,
       totalRacikan: data._sum.racikan || 0
     };
   },
@@ -673,10 +673,11 @@ export const getLaboratorium = unstable_cache(
         day: 'numeric',
         month: 'short'
       }),
-      pemeriksaan: item.jumlahPemeriksaan,
+      totalPemeriksaan: item.jumlahPemeriksaan,
       hematologi: item.hematologi,
-      kimia_klinik: item.kimiaKlinik,
-      urinalisis: item.urinalisis
+      kimiaDarah: item.kimiaKlinik,
+      urinalisis: item.urinalisis,
+      serologi: 0
     }));
   },
   ['laboratorium'],
@@ -708,10 +709,11 @@ export const getLaboratoriumSummary = unstable_cache(
     });
 
     return {
-      total: data._sum.jumlahPemeriksaan || 0,
+      totalPemeriksaan: data._sum.jumlahPemeriksaan || 0,
       hematologi: data._sum.hematologi || 0,
-      kimiaKlinik: data._sum.kimiaKlinik || 0,
-      urinalisis: data._sum.urinalisis || 0
+      kimiaDarah: data._sum.kimiaKlinik || 0,
+      urinalisis: data._sum.urinalisis || 0,
+      serologi: 0
     };
   },
   ['laboratorium-summary'],
@@ -742,10 +744,10 @@ export const getRawatInap = unstable_cache(
         day: 'numeric',
         month: 'short'
       }),
-      masuk: item.pasienMasuk,
-      keluar: item.pasienKeluar,
-      bed_terisi: item.bedTerisi,
-      bed_total: item.bedTotal,
+      pasienMasuk: item.pasienMasuk,
+      pasienKeluar: item.pasienKeluar,
+      bedTerpakai: item.bedTerisi,
+      bedKosong: item.bedTotal - item.bedTerisi,
       bor: Math.round((item.bedTerisi / item.bedTotal) * 100)
     }));
   },
@@ -784,8 +786,12 @@ export const getRawatInapSummary = unstable_cache(
       : 0;
 
     return {
-      totalMasuk: data._sum.pasienMasuk || 0,
-      totalKeluar: data._sum.pasienKeluar || 0,
+      totalPasienMasuk: data._sum.pasienMasuk || 0,
+      totalPasienKeluar: data._sum.pasienKeluar || 0,
+      bedTerpakai: Math.round(data._avg.bedTerisi || 0),
+      bedKosong: Math.round(
+        (data._avg.bedTotal || 0) - (data._avg.bedTerisi || 0)
+      ),
       avgBor
     };
   },
@@ -972,8 +978,9 @@ export const getTopObat = unstable_cache(
     });
 
     return data.map((item: any) => ({
-      nama: item.namaObat,
-      jumlah: item._sum.jumlahResep || 0
+      namaObat: item.namaObat,
+      jumlahPemakaian: item._sum.jumlahResep || 0,
+      satuan: 'Tab'
     }));
   },
   ['top-obat'],

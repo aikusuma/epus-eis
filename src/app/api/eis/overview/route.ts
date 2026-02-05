@@ -162,10 +162,10 @@ export async function GET(req: NextRequest) {
         },
         trend,
         topPenyakit: topPenyakit.map(
-          (p: { kode: string; diagnosa: string; jumlah: number }) => ({
-            icd10Code: p.kode,
-            nama: p.diagnosa,
-            jumlah: p.jumlah
+          (p: { kodeIcd: string; nama: string; jumlahKasus: number }) => ({
+            icd10Code: p.kodeIcd,
+            nama: p.nama,
+            jumlah: p.jumlahKasus
           })
         ),
         distribusiUsia: distribusiUsia.map(

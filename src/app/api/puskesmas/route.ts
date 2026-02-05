@@ -12,10 +12,16 @@ export async function GET() {
         kodePuskesmas: true,
         namaPuskesmas: true,
         jenis: true
-      }
+      },
+      distinct: ['kodePuskesmas'] // Ensure no duplicate puskesmas
     });
 
-    return NextResponse.json(puskesmas);
+    // Additional deduplication by name as a safeguard
+    const uniquePuskesmas = Array.from(
+      new Map(puskesmas.map((p) => [p.namaPuskesmas, p])).values()
+    );
+
+    return NextResponse.json(uniquePuskesmas);
   } catch (error) {
     console.error('Error fetching puskesmas:', error);
     return NextResponse.json(

@@ -20,6 +20,7 @@ import {
   IconDroplet
 } from '@tabler/icons-react';
 import { useOverviewData } from '@/hooks/use-eis-data';
+import { useOverviewFilterParams } from '@/features/overview/context/overview-filter-context';
 
 type IconComponent = typeof IconVirus;
 
@@ -60,7 +61,8 @@ interface PenyakitItem {
 }
 
 export function RecentSales() {
-  const { data, isLoading } = useOverviewData();
+  const filters = useOverviewFilterParams();
+  const { data, isLoading } = useOverviewData(filters);
 
   const topPenyakit: PenyakitItem[] = useMemo(() => {
     if (!data?.topPenyakit) return [];
@@ -78,12 +80,12 @@ export function RecentSales() {
 
   if (isLoading) {
     return (
-      <Card className='h-full'>
+      <Card className='flex h-full w-full flex-col'>
         <CardHeader className='pb-2'>
           <CardTitle className='text-base'>Top 5 Penyakit</CardTitle>
           <CardDescription className='text-xs'>Loading...</CardDescription>
         </CardHeader>
-        <CardContent className='pt-0'>
+        <CardContent className='flex-1 pt-0'>
           <div className='space-y-3'>
             {[1, 2, 3, 4, 5].map((i) => (
               <div key={i} className='flex items-center gap-2'>
@@ -101,14 +103,14 @@ export function RecentSales() {
     );
   }
   return (
-    <Card className='h-full'>
+    <Card className='flex h-full w-full flex-col'>
       <CardHeader className='pb-2'>
         <CardTitle className='text-base'>Top 5 Penyakit</CardTitle>
         <CardDescription className='text-xs'>
           Berdasarkan jumlah kunjungan bulan ini
         </CardDescription>
       </CardHeader>
-      <CardContent className='pt-0'>
+      <CardContent className='flex flex-1 flex-col pt-0'>
         <div className='space-y-3'>
           {topPenyakit.map((penyakit, index) => {
             const Icon = penyakit.icon;
@@ -127,7 +129,7 @@ export function RecentSales() {
                 </div>
                 <div className='flex flex-col items-end gap-0.5'>
                   <span className='text-sm font-semibold tabular-nums'>
-                    {penyakit.count.toLocaleString('id-ID')}
+                    {(penyakit.count || 0).toLocaleString('id-ID')}
                   </span>
                   <Badge
                     variant={
@@ -146,7 +148,7 @@ export function RecentSales() {
             );
           })}
         </div>
-        <div className='mt-4 border-t pt-3'>
+        <div className='mt-auto border-t pt-4'>
           <Button variant='outline' size='sm' className='w-full' asChild>
             <Link href='/dashboard/laporan?report=penyakit'>
               Lihat Lebih Lanjut →
