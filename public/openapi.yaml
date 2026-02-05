@@ -1,0 +1,1553 @@
+openapi: 3.0.3
+info:
+  title: E-Puskesmas EIS API
+  version: 1.0.0
+  description: |
+    OpenAPI untuk E-Puskesmas EIS. Disusun mengikuti struktur menu frontend:
+    Dashboard, Cari, Klaster 1-4, Lintas Klaster, Monitoring, dan Akun.
+
+    **Integrasi pihak ketiga (e-Puskesmas / webhook)**
+    - Semua pengiriman data dari sistem eksternal dilakukan via endpoint `POST /api/eis/klaster1`, `POST /api/eis/klaster2`, `POST /api/eis/klaster3`, `POST /api/eis/klaster4`, dan `POST /api/eis/lintas-klaster`.
+    - Endpoint dashboard/analitik tetap `GET` (read-only). Data yang tampil berasal dari hasil POST (webhook push).
+    - Semua endpoint POST di atas wajib menyertakan header `X-Epus-Signature` untuk HMAC:
+      signature = HMAC_SHA256(EPUS_WEBHOOK_SECRET, `${t}.${rawJsonUtf8}`)
+      Header format: `t=<unix_ts>,v1=<hex_sha256>`
+    - Idempotency: gunakan `batchId` unik agar retry aman (tidak dobel).
+    - Skala besar: payload boleh `Content-Encoding: gzip` (signature dihitung dari JSON *setelah* di-decompress).
+servers:
+  - url: http://localhost:3000
+    description: Local development
+
+tags:
+  - name: Auth
+    description: Autentikasi & sesi
+  - name: Akun
+    description: Profil pengguna
+  - name: Dashboard
+    description: Ringkasan overview dashboard
+  - name: Cari
+    description: Pencarian ICD-10 dan analitik
+  - name: Klaster 1
+    description: SDM, obat, keuangan
+  - name: Klaster 2
+    description: KIA, antenatal, imunisasi
+  - name: Klaster 3
+    description: Deteksi dini, faktor risiko, gigi
+  - name: Klaster 4
+    description: Diagnosa & tingkat bahaya
+  - name: Lintas Klaster
+    description: Gawat darurat, farmasi, lab, rawat inap
+  - name: Monitoring
+    description: Monitoring layanan dan kunjungan
+  - name: Puskesmas
+    description: Referensi puskesmas & detail
+  - name: Ingestion
+    description: Ingest data kunjungan
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: auth_token
+
+  parameters:
+    XEpusSignature:
+      name: X-Epus-Signature
+      in: header
+      required: true
+      description: "Signature HMAC. Format: `t=<unix_ts>,v1=<hex_sha256>`"
+      schema:
+        type: string
+        example: t=1700000000,v1=0123abcd...
+    ContentEncoding:
+      name: Content-Encoding
+      in: header
+      required: false
+      description: "Opsional untuk payload besar. Gunakan `gzip` bila body di-compress."
+      schema:
+        type: string
+        enum: [gzip]
+    AuthorizationHeader:
+      name: Authorization
+      in: header
+      required: false
+      description: "Bearer token. Contoh: `Bearer <token>`"
+      schema:
+        type: string
+        example: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+    PuskesmasId:
+      name: puskesmasId
+      in: query
+      required: false
+      schema:
+        type: string
+      description: "ID puskesmas, gunakan `all` untuk semua"
+    Bulan:
+      name: bulan
+      in: query
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 12
+      description: Bulan (1-12)
+    Tahun:
+      name: tahun
+      in: query
+      required: false
+      schema:
+        type: integer
+      description: Tahun (YYYY)
+    Period:
+      name: period
+      in: query
+      required: false
+      schema:
+        type: string
+        enum: [week, month, quarter, year]
+      description: Periode agregasi
+    Limit:
+      name: limit
+      in: query
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+    Tanggal:
+      name: tanggal
+      in: query
+      required: false
+      schema:
+        type: string
+        format: date
+      description: Tanggal (YYYY-MM-DD)
+    GroupBy:
+      name: groupBy
+      in: query
+      required: false
+      schema:
+        type: string
+        enum: [puskesmas, kecamatan, age, gender, month]
+    Icd10:
+      name: icd10
+      in: query
+      required: false
+      schema:
+        type: string
+    Group:
+      name: group
+      in: query
+      required: false
+      schema:
+        type: string
+    Query:
+      name: q
+      in: query
+      required: false
+      schema:
+        type: string
+    SearchType:
+      name: type
+      in: query
+      required: false
+      schema:
+        type: string
+        enum: [search, top, diagnoses, overall-trend, by-code, trend, monthly-trend]
+    Icd10Id:
+      name: icd10Id
+      in: query
+      required: false
+      schema:
+        type: string
+    Icd10Code:
+      name: code
+      in: query
+      required: false
+      schema:
+        type: string
+
+  schemas:
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+        details:
+          type: object
+          additionalProperties: true
+
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+      example:
+        email: admin@epus.local
+        password: admin123
+
+    LoginResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        user:
+          type: object
+          properties:
+            id: { type: string }
+            email: { type: string }
+            nama: { type: string }
+            jabatan: { type: string }
+            role: { type: string }
+            roleCode: { type: string }
+            puskesmas: { type: string, nullable: true }
+            wilayah: { type: string, nullable: true }
+            permissions:
+              type: array
+              items: { type: string }
+        token:
+          type: string
+
+    LogoutResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+      example:
+        success: true
+
+    MeResponse:
+      type: object
+      properties:
+        user:
+          type: object
+          properties:
+            id: { type: string }
+            email: { type: string }
+            nama: { type: string }
+            jabatan: { type: string }
+            role: { type: string }
+            roleCode: { type: string }
+            puskesmas:
+              type: object
+              nullable: true
+              properties:
+                id: { type: string }
+                kode: { type: string }
+                nama: { type: string }
+            wilayah:
+              type: object
+              nullable: true
+              properties:
+                id: { type: string }
+                kode: { type: string }
+                nama: { type: string }
+            permissions:
+              type: array
+              items: { type: string }
+
+    IngestKunjunganRequest:
+      type: object
+      required: [puskesmasId, date, records]
+      properties:
+        puskesmasId:
+          type: string
+        date:
+          type: string
+          format: date
+        records:
+          type: array
+          items:
+            type: object
+            required:
+              - kunjunganId
+              - pasienId
+              - gender
+              - ageGroup
+              - layananType
+              - unitType
+              - icd10Codes
+            properties:
+              kunjunganId: { type: string }
+              pasienId: { type: string }
+              gender:
+                type: string
+                enum: [L, P]
+              ageGroup:
+                type: string
+                enum:
+                  - 0-4
+                  - 5-9
+                  - 10-14
+                  - 15-19
+                  - 20-24
+                  - 25-29
+                  - 30-34
+                  - 35-39
+                  - 40-44
+                  - 45-49
+                  - 50-54
+                  - 55-59
+                  - 60-64
+                  - 65-69
+                  - 70+
+              layananType:
+                type: string
+                enum: [umum, gigi, KIA, lansia, imunisasi, KB, jiwa, lab, gizi]
+              unitType:
+                type: string
+                enum: [rawat_jalan, rawat_inap, IGD, pustu, pusling, posyandu]
+              icd10Codes:
+                type: array
+                minItems: 1
+                maxItems: 10
+                items: { type: string }
+              diagnosisType:
+                type: string
+                enum: [primer, sekunder]
+      example:
+        puskesmasId: 00000000-0000-0000-0000-000000000000
+        date: 2026-02-01
+        records:
+          - kunjunganId: KUNJ-001
+            pasienId: PAS-001
+            gender: L
+            ageGroup: 30-34
+            layananType: umum
+            unitType: rawat_jalan
+            icd10Codes: [A09]
+            diagnosisType: primer
+
+    IngestKunjunganResponse:
+      type: object
+      properties:
+        success: { type: boolean }
+        ingestionId: { type: string }
+        summary:
+          type: object
+          properties:
+            puskesmasId: { type: string }
+            puskesmasName: { type: string }
+            date: { type: string, format: date }
+            recordsReceived: { type: integer }
+            kunjunganRowsInserted: { type: integer }
+            diagnosisRowsInserted: { type: integer }
+
+    IngestLogListResponse:
+      type: object
+      properties:
+        logs:
+          type: array
+          items:
+            type: object
+            properties:
+              id: { type: string }
+              eventType: { type: string }
+              puskesmasId: { type: string }
+              status: { type: string }
+              errorMsg: { type: string, nullable: true }
+              createdAt: { type: string, format: date-time }
+              processedAt: { type: string, format: date-time, nullable: true }
+
+    KlasterGenericResponse:
+      type: object
+      properties:
+        success: { type: boolean }
+        data:
+          type: object
+          additionalProperties: true
+
+    PuskesmasListResponse:
+      type: object
+      properties:
+        success: { type: boolean }
+        data:
+          type: object
+          properties:
+            puskesmas:
+              type: array
+              items:
+                type: object
+                additionalProperties: true
+            count: { type: integer }
+
+    PuskesmasDetailResponse:
+      type: object
+      properties:
+        puskesmas:
+          type: object
+          properties:
+            id: { type: string }
+            name: { type: string }
+            type: { type: string }
+            kecamatan: { type: string, nullable: true }
+            kecamatanId: { type: string, nullable: true }
+            address: { type: string, nullable: true }
+        period: { type: string }
+        startDate: { type: string, format: date }
+        summary:
+          type: object
+          properties:
+            totalKunjungan: { type: number }
+            pertumbuhanPersen: { type: number }
+            periodeBanding: { type: string }
+        topPenyakit:
+          type: array
+          items:
+            type: object
+            properties:
+              icd10Code: { type: string }
+              icd10Name: { type: string }
+              version: { type: string }
+              total: { type: number }
+        distribusiLayanan:
+          type: array
+          items:
+            type: object
+            properties:
+              layanan: { type: string }
+              total: { type: number }
+        distribusiGender:
+          type: array
+          items:
+            type: object
+            properties:
+              gender: { type: string }
+              total: { type: number }
+        trenBulanan:
+          type: array
+          items:
+            type: object
+            properties:
+              bulan: { type: string }
+              total: { type: number }
+
+    PublicPuskesmasListResponse:
+      type: array
+      items:
+        type: object
+        properties:
+          id: { type: string }
+          kodePuskesmas: { type: string }
+          namaPuskesmas: { type: string }
+          jenis: { type: string }
+
+paths:
+
+  /api/auth/login:
+    post:
+      tags: [Auth]
+      summary: Login pengguna
+      parameters:
+        - $ref: '#/components/parameters/AuthorizationHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+            example:
+              email: admin@epus.local
+              password: admin123
+      responses:
+        '200':
+          description: Login berhasil
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        '400':
+          description: Validasi gagal
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Email atau password salah
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Kesalahan server
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/auth/logout:
+    post:
+      tags: [Auth]
+      summary: Logout pengguna
+      parameters:
+        - $ref: '#/components/parameters/AuthorizationHeader'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+            example: {}
+      responses:
+        '200':
+          description: Logout berhasil
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LogoutResponse'
+
+  /api/auth/me:
+    get:
+      tags: [Akun]
+      summary: Ambil profil pengguna saat ini
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/AuthorizationHeader'
+      responses:
+        '200':
+          description: Profil pengguna
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MeResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/ingest/kunjungan:
+    post:
+      tags: [Ingestion]
+      summary: Ingest data kunjungan
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/AuthorizationHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IngestKunjunganRequest'
+            example:
+              puskesmasId: 00000000-0000-0000-0000-000000000000
+              date: 2026-02-01
+              records:
+                - kunjunganId: KUNJ-001
+                  pasienId: PAS-001
+                  gender: L
+                  ageGroup: 30-34
+                  layananType: umum
+                  unitType: rawat_jalan
+                  icd10Codes: [A09]
+                  diagnosisType: primer
+      responses:
+        '200':
+          description: Ingest berhasil
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IngestKunjunganResponse'
+        '400':
+          description: Validasi gagal
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Akses ditolak
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Kesalahan server
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    get:
+      tags: [Ingestion]
+      summary: Lihat status & history ingestion
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/AuthorizationHeader'
+        - $ref: '#/components/parameters/PuskesmasId'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: Daftar ingestion log
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IngestLogListResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Akses ditolak
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/eis/overview:
+    get:
+      tags: [Dashboard]
+      summary: Ringkasan KPI dashboard
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/AuthorizationHeader'
+        - $ref: '#/components/parameters/PuskesmasId'
+        - $ref: '#/components/parameters/Bulan'
+        - $ref: '#/components/parameters/Tahun'
+      responses:
+        '200':
+          description: Data overview
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Akses ditolak
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/eis/search:
+    get:
+      tags: [Cari]
+      summary: Pencarian ICD-10 & tren
+      parameters:
+        - $ref: '#/components/parameters/Query'
+        - $ref: '#/components/parameters/SearchType'
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Icd10Id'
+        - $ref: '#/components/parameters/Icd10Code'
+      responses:
+        '200':
+          description: Hasil pencarian
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '500':
+          description: Kesalahan server
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/eis/icd10/search:
+    get:
+      tags: [Cari]
+      summary: Autocomplete ICD-10 (protected)
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/AuthorizationHeader'
+        - $ref: '#/components/parameters/Query'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: Hasil autocomplete
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Akses ditolak
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/eis/disease/top:
+    get:
+      tags: [Cari]
+      summary: Top penyakit (ICD-10)
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/AuthorizationHeader'
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Period'
+      responses:
+        '200':
+          description: Top ICD-10
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Akses ditolak
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/eis/disease/distribution:
+    get:
+      tags: [Cari]
+      summary: Distribusi penyakit (ICD-10)
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/AuthorizationHeader'
+        - $ref: '#/components/parameters/GroupBy'
+        - $ref: '#/components/parameters/Icd10'
+        - $ref: '#/components/parameters/Group'
+        - $ref: '#/components/parameters/Period'
+      responses:
+        '200':
+          description: Distribusi penyakit
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Akses ditolak
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/eis/klaster1:
+    get:
+      tags: [Klaster 1]
+      summary: Data Klaster 1
+      parameters:
+        - $ref: '#/components/parameters/PuskesmasId'
+        - $ref: '#/components/parameters/Bulan'
+        - $ref: '#/components/parameters/Tahun'
+      responses:
+        '200':
+          description: Data klaster 1
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/KlasterGenericResponse'
+    post:
+      tags: [Klaster 1]
+      summary: Webhook push data Klaster 1 (SDM, Obat, Keuangan)
+      description: |
+        Dipakai oleh sistem eksternal (e-Puskesmas) untuk mengirim **data transaksi/agregat bulanan** Klaster 1.
+
+        Minimal kirim salah satu: `tenagaKesehatan`, `stokObat`, `keuangan`.
+        Server akan **upsert** berdasarkan kombinasi unik:
+        - Tenaga Kesehatan: `puskesmas + kategori + bulan + tahun`
+        - Stok Obat: `puskesmas + namaObat + bulan + tahun`
+        - Keuangan: `puskesmas + kategori + bulan + tahun`
+      parameters:
+        - $ref: '#/components/parameters/XEpusSignature'
+        - $ref: '#/components/parameters/ContentEncoding'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                batchId: { type: string }
+                puskesmasKode: { type: string }
+                puskesmasId: { type: string }
+                bulan: { type: integer, minimum: 1, maximum: 12 }
+                tahun: { type: integer }
+                tenagaKesehatan:
+                  type: array
+                  items:
+                    type: object
+                    required: [kategori, jumlah, target]
+                    properties:
+                      kategori: { type: string }
+                      jumlah: { type: integer }
+                      target: { type: integer }
+                stokObat:
+                  type: array
+                  items:
+                    type: object
+                    required: [namaObat, satuan, stok, pemakaian]
+                    properties:
+                      namaObat: { type: string }
+                      satuan: { type: string }
+                      stok: { type: integer }
+                      pemakaian: { type: integer }
+                keuangan:
+                  type: array
+                  items:
+                    type: object
+                    required: [kategori, nominal]
+                    properties:
+                      kategori: { type: string }
+                      nominal: { type: number }
+              oneOf:
+                - required: [batchId, puskesmasKode, bulan, tahun]
+                - required: [batchId, puskesmasId, bulan, tahun]
+            examples:
+              full_sdm_obat_keuangan:
+                summary: Kirim SDM + Obat + Keuangan (lengkap)
+                value:
+                  batchId: EPUS-BUMIAYU-2026-02-K1-0001
+                  puskesmasKode: "3329XXXX"
+                  bulan: 2
+                  tahun: 2026
+                  tenagaKesehatan:
+                    - kategori: Dokter Umum
+                      jumlah: 2
+                      target: 3
+                    - kategori: Dokter Gigi
+                      jumlah: 1
+                      target: 1
+                    - kategori: Bidan
+                      jumlah: 6
+                      target: 7
+                  stokObat:
+                    - namaObat: Paracetamol 500mg
+                      satuan: tablet
+                      stok: 2500
+                      pemakaian: 800
+                    - namaObat: Amoxicillin 500mg
+                      satuan: kapsul
+                      stok: 1200
+                      pemakaian: 350
+                  keuangan:
+                    - kategori: Pendapatan JKN
+                      nominal: 12500000
+                    - kategori: Pendapatan Umum
+                      nominal: 3500000
+              only_obat:
+                summary: Kirim Obat saja (boleh tanpa SDM & Keuangan)
+                value:
+                  batchId: EPUS-BUMIAYU-2026-02-K1-OBAT-0001
+                  puskesmasKode: "3329XXXX"
+                  bulan: 2
+                  tahun: 2026
+                  stokObat:
+                    - namaObat: Paracetamol 500mg
+                      satuan: tablet
+                      stok: 2500
+                      pemakaian: 800
+              only_sdm:
+                summary: Kirim SDM saja
+                value:
+                  batchId: EPUS-BUMIAYU-2026-02-K1-SDM-0001
+                  puskesmasKode: "3329XXXX"
+                  bulan: 2
+                  tahun: 2026
+                  tenagaKesehatan:
+                    - kategori: Dokter Umum
+                      jumlah: 2
+                      target: 3
+              only_keuangan:
+                summary: Kirim Keuangan saja
+                value:
+                  batchId: EPUS-BUMIAYU-2026-02-K1-KEU-0001
+                  puskesmasKode: "3329XXXX"
+                  bulan: 2
+                  tahun: 2026
+                  keuangan:
+                    - kategori: Pendapatan JKN
+                      nominal: 12500000
+      responses:
+        '200':
+          description: Data diterima dan diproses
+          content:
+            application/json:
+              schema: { type: object, additionalProperties: true }
+        '400':
+          description: Validasi gagal
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+        '401':
+          description: Signature invalid
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+        '500':
+          description: Kesalahan server
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+
+  /api/eis/klaster2:
+    get:
+      tags: [Klaster 2]
+      summary: Data Klaster 2
+      parameters:
+        - $ref: '#/components/parameters/PuskesmasId'
+        - $ref: '#/components/parameters/Bulan'
+        - $ref: '#/components/parameters/Tahun'
+      responses:
+        '200':
+          description: Data klaster 2
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/KlasterGenericResponse'
+    post:
+      tags: [Klaster 2]
+      summary: Webhook push data Klaster 2 (ANC, Imunisasi)
+      description: |
+        Dipakai oleh sistem eksternal (e-Puskesmas) untuk mengirim **data agregat bulanan** Klaster 2.
+
+        Minimal kirim salah satu: `antenatalCare` atau `imunisasi`.
+        Server akan **upsert**:
+        - ANC: `puskesmas + bulan + tahun`
+        - Imunisasi: `puskesmas + jenisImunisasi + bulan + tahun`
+      parameters:
+        - $ref: '#/components/parameters/XEpusSignature'
+        - $ref: '#/components/parameters/ContentEncoding'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                batchId: { type: string }
+                puskesmasKode: { type: string }
+                puskesmasId: { type: string }
+                bulan: { type: integer, minimum: 1, maximum: 12 }
+                tahun: { type: integer }
+                antenatalCare:
+                  type: object
+                  required: [k1, k4, target]
+                  properties:
+                    k1: { type: integer }
+                    k4: { type: integer }
+                    target: { type: integer }
+                imunisasi:
+                  type: array
+                  items:
+                    type: object
+                    required: [jenisImunisasi, kategori, sasaran, capaian]
+                    properties:
+                      jenisImunisasi: { type: string }
+                      kategori: { type: string }
+                      sasaran: { type: integer }
+                      capaian: { type: integer }
+              oneOf:
+                - required: [batchId, puskesmasKode, bulan, tahun]
+                - required: [batchId, puskesmasId, bulan, tahun]
+            examples:
+              full_anc_imunisasi:
+                summary: Kirim ANC + Imunisasi (lengkap)
+                value:
+                  batchId: EPUS-BUMIAYU-2026-02-K2-0001
+                  puskesmasKode: "3329XXXX"
+                  bulan: 2
+                  tahun: 2026
+                  antenatalCare:
+                    k1: 120
+                    k4: 95
+                    target: 140
+                  imunisasi:
+                    - jenisImunisasi: HB-0
+                      kategori: bayi
+                      sasaran: 110
+                      capaian: 98
+                    - jenisImunisasi: BCG
+                      kategori: bayi
+                      sasaran: 110
+                      capaian: 102
+                    - jenisImunisasi: MR
+                      kategori: baduta
+                      sasaran: 105
+                      capaian: 90
+              only_anc:
+                summary: Kirim ANC saja
+                value:
+                  batchId: EPUS-BUMIAYU-2026-02-K2-ANC-0001
+                  puskesmasKode: "3329XXXX"
+                  bulan: 2
+                  tahun: 2026
+                  antenatalCare:
+                    k1: 120
+                    k4: 95
+                    target: 140
+              only_imunisasi:
+                summary: Kirim Imunisasi saja
+                value:
+                  batchId: EPUS-BUMIAYU-2026-02-K2-IMUN-0001
+                  puskesmasKode: "3329XXXX"
+                  bulan: 2
+                  tahun: 2026
+                  imunisasi:
+                    - jenisImunisasi: HB-0
+                      kategori: bayi
+                      sasaran: 110
+                      capaian: 98
+      responses:
+        '200':
+          description: Data diterima dan diproses
+          content:
+            application/json:
+              schema: { type: object, additionalProperties: true }
+        '400':
+          description: Validasi gagal
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+        '401':
+          description: Signature invalid
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+        '500':
+          description: Kesalahan server
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+
+  /api/eis/klaster3:
+    get:
+      tags: [Klaster 3]
+      summary: Data Klaster 3
+      parameters:
+        - $ref: '#/components/parameters/PuskesmasId'
+        - $ref: '#/components/parameters/Bulan'
+        - $ref: '#/components/parameters/Tahun'
+      responses:
+        '200':
+          description: Data klaster 3
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/KlasterGenericResponse'
+    post:
+      tags: [Klaster 3]
+      summary: Webhook push data Klaster 3 (Deteksi Dini, Faktor Risiko, Pemeriksaan Gigi)
+      description: |
+        Contoh kasus: **Puskesmas Bumiayu** ingin mengirim data Klaster 3 untuk **Pemeriksaan Gigi**.
+
+        Pihak e-Puskesmas mengirim agregat bulanan per `kategori` (mis. `SD/MI`, `SMP/MTs`, `SMA/SMK`).
+        Server akan **upsert** berdasarkan kombinasi unik:
+        - Deteksi Dini: `puskesmas + jenis + bulan + tahun`
+        - Faktor Risiko: `puskesmas + faktor + kelompokUmur + bulan + tahun`
+        - Pemeriksaan Gigi: `puskesmas + kategori + bulan + tahun`
+      parameters:
+        - $ref: '#/components/parameters/XEpusSignature'
+        - $ref: '#/components/parameters/ContentEncoding'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                batchId: { type: string }
+                puskesmasKode: { type: string }
+                puskesmasId: { type: string }
+                bulan: { type: integer, minimum: 1, maximum: 12 }
+                tahun: { type: integer }
+                deteksiDini:
+                  type: array
+                  items:
+                    type: object
+                    required: [jenis, sasaran, capaian]
+                    properties:
+                      jenis: { type: string }
+                      sasaran: { type: integer }
+                      capaian: { type: integer }
+                faktorRisiko:
+                  type: array
+                  items:
+                    type: object
+                    required: [faktor, kelompokUmur, jumlahKasus]
+                    properties:
+                      faktor: { type: string }
+                      kelompokUmur: { type: string }
+                      jumlahKasus: { type: integer }
+                pemeriksaanGigi:
+                  type: array
+                  items:
+                    type: object
+                    required: [kategori, sasaran, diperiksa, perluPerawatan]
+                    properties:
+                      kategori: { type: string }
+                      sasaran: { type: integer }
+                      diperiksa: { type: integer }
+                      perluPerawatan: { type: integer }
+              oneOf:
+                - required: [batchId, puskesmasKode, bulan, tahun]
+                - required: [batchId, puskesmasId, bulan, tahun]
+            examples:
+              full_deteksi_faktor_gigi:
+                summary: Kirim Deteksi Dini + Faktor Risiko + Pemeriksaan Gigi
+                value:
+                  batchId: EPUS-BUMIAYU-2026-02-K3-0001
+                  puskesmasKode: "3329XXXX"
+                  bulan: 2
+                  tahun: 2026
+                  deteksiDini:
+                    - jenis: Kanker Serviks (IVA)
+                      sasaran: 200
+                      capaian: 120
+                    - jenis: Tuberculosis
+                      sasaran: 150
+                      capaian: 80
+                  faktorRisiko:
+                    - faktor: Hipertensi
+                      kelompokUmur: 45-59
+                      jumlahKasus: 42
+                    - faktor: Diabetes
+                      kelompokUmur: 60+
+                      jumlahKasus: 18
+                  pemeriksaanGigi:
+                    - kategori: SD/MI
+                      sasaran: 120
+                      diperiksa: 95
+                      perluPerawatan: 22
+                    - kategori: SMP/MTs
+                      sasaran: 80
+                      diperiksa: 60
+                      perluPerawatan: 15
+              only_pemeriksaan_gigi:
+                summary: Kirim Pemeriksaan Gigi saja
+                value:
+                  batchId: EPUS-BUMIAYU-2026-02-K3-GIGI-0001
+                  puskesmasKode: "3329XXXX"
+                  bulan: 2
+                  tahun: 2026
+                  pemeriksaanGigi:
+                    - kategori: SD/MI
+                      sasaran: 120
+                      diperiksa: 95
+                      perluPerawatan: 22
+      responses:
+        '200':
+          description: Data diterima dan diproses
+          content:
+            application/json:
+              schema: { type: object, additionalProperties: true }
+        '400':
+          description: Validasi gagal
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+        '401':
+          description: Signature invalid
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+        '500':
+          description: Kesalahan server
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+
+  /api/eis/klaster4:
+    get:
+      tags: [Klaster 4]
+      summary: Data Klaster 4
+      parameters:
+        - $ref: '#/components/parameters/PuskesmasId'
+        - $ref: '#/components/parameters/Bulan'
+        - $ref: '#/components/parameters/Tahun'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: Data klaster 4
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/KlasterGenericResponse'
+    post:
+      tags: [Klaster 4]
+      summary: Webhook push data Klaster 4 (Top Diagnosa, Diagnosa Harian)
+      description: |
+        Dipakai untuk mengirim data Klaster 4.
+
+        Minimal kirim salah satu:
+        - `topDiagnosa` (bulanan, untuk grafik Top Diagnosa)
+        - `diagnosaHarian` (harian, untuk klasifikasi bahaya tinggi/sedang/rendah)
+
+        Untuk `diagnosaHarian`, server akan mengganti (replace) semua record pada tanggal-tanggal yang dikirim.
+      parameters:
+        - $ref: '#/components/parameters/XEpusSignature'
+        - $ref: '#/components/parameters/ContentEncoding'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                batchId: { type: string }
+                puskesmasKode: { type: string }
+                puskesmasId: { type: string }
+                bulan: { type: integer, minimum: 1, maximum: 12 }
+                tahun: { type: integer }
+                topDiagnosa:
+                  type: array
+                  items:
+                    type: object
+                    required: [icd10Code, diagnosa, jumlahKasus]
+                    properties:
+                      icd10Code: { type: string }
+                      diagnosa: { type: string }
+                      jumlahKasus: { type: integer }
+                diagnosaHarian:
+                  type: array
+                  items:
+                    type: object
+                    required: [tanggal, icd10Code, diagnosa, jumlahKasus, tingkatBahaya]
+                    properties:
+                      tanggal: { type: string, format: date }
+                      icd10Code: { type: string }
+                      diagnosa: { type: string }
+                      jumlahKasus: { type: integer }
+                      tingkatBahaya:
+                        type: string
+                        enum: [TINGGI, SEDANG, RENDAH]
+              oneOf:
+                - required: [batchId, puskesmasKode, bulan, tahun]
+                - required: [batchId, puskesmasId, bulan, tahun]
+            examples:
+              only_top_diagnosa:
+                summary: Kirim Top Diagnosa saja (bulanan)
+                value:
+                  batchId: EPUS-BUMIAYU-2026-02-K4-TOP-0001
+                  puskesmasKode: "3329XXXX"
+                  bulan: 2
+                  tahun: 2026
+                  topDiagnosa:
+                    - icd10Code: J06.9
+                      diagnosa: Infeksi saluran pernapasan atas akut, tidak spesifik
+                      jumlahKasus: 120
+                    - icd10Code: A09
+                      diagnosa: Diare dan gastroenteritis yang diduga berasal dari infeksi
+                      jumlahKasus: 65
+              only_diagnosa_harian:
+                summary: Kirim Diagnosa Harian saja (harian; replace per tanggal yang dikirim)
+                value:
+                  batchId: EPUS-BUMIAYU-2026-02-K4-HARIAN-0001
+                  puskesmasKode: "3329XXXX"
+                  bulan: 2
+                  tahun: 2026
+                  diagnosaHarian:
+                    - tanggal: 2026-02-01
+                      icd10Code: A09
+                      diagnosa: Diare
+                      jumlahKasus: 10
+                      tingkatBahaya: SEDANG
+                    - tanggal: 2026-02-01
+                      icd10Code: J06.9
+                      diagnosa: ISPA
+                      jumlahKasus: 22
+                      tingkatBahaya: RENDAH
+                    - tanggal: 2026-02-02
+                      icd10Code: I10
+                      diagnosa: Hipertensi esensial (primer)
+                      jumlahKasus: 8
+                      tingkatBahaya: TINGGI
+      responses:
+        '200':
+          description: Data diterima dan diproses
+          content:
+            application/json:
+              schema: { type: object, additionalProperties: true }
+        '400':
+          description: Validasi gagal
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+        '401':
+          description: Signature invalid
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+        '500':
+          description: Kesalahan server
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+
+  /api/eis/lintas-klaster:
+    get:
+      tags: [Lintas Klaster]
+      summary: Data lintas klaster
+      parameters:
+        - $ref: '#/components/parameters/PuskesmasId'
+        - $ref: '#/components/parameters/Tanggal'
+      responses:
+        '200':
+          description: Data lintas klaster
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/KlasterGenericResponse'
+    post:
+      tags: [Lintas Klaster]
+      summary: Webhook push data Lintas Klaster (GD, Farmasi, Lab, Rawat Inap)
+      description: |
+        Dipakai oleh sistem eksternal (e-Puskesmas) untuk mengirim data harian lintas klaster.
+
+        Minimal kirim salah satu: `gawatDarurat`, `farmasi`, `laboratorium`, atau `rawatInap`.
+        Server akan **upsert** per tanggal: `puskesmas + tanggal`.
+      parameters:
+        - $ref: '#/components/parameters/XEpusSignature'
+        - $ref: '#/components/parameters/ContentEncoding'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                batchId: { type: string }
+                puskesmasKode: { type: string }
+                puskesmasId: { type: string }
+                gawatDarurat:
+                  type: array
+                  items:
+                    type: object
+                    required: [tanggal, triaseMerah, triaseKuning, triaseHijau]
+                    properties:
+                      tanggal: { type: string, format: date }
+                      triaseMerah: { type: integer }
+                      triaseKuning: { type: integer }
+                      triaseHijau: { type: integer }
+                farmasi:
+                  type: array
+                  items:
+                    type: object
+                    required: [tanggal, jumlahResep, obatKeluar, racikan]
+                    properties:
+                      tanggal: { type: string, format: date }
+                      jumlahResep: { type: integer }
+                      obatKeluar: { type: integer }
+                      racikan: { type: integer }
+                laboratorium:
+                  type: array
+                  items:
+                    type: object
+                    required: [tanggal, jumlahPemeriksaan, hematologi, kimiaKlinik, urinalisis]
+                    properties:
+                      tanggal: { type: string, format: date }
+                      jumlahPemeriksaan: { type: integer }
+                      hematologi: { type: integer }
+                      kimiaKlinik: { type: integer }
+                      urinalisis: { type: integer }
+                rawatInap:
+                  type: array
+                  items:
+                    type: object
+                    required: [tanggal, pasienMasuk, pasienKeluar, bedTerisi, bedTotal]
+                    properties:
+                      tanggal: { type: string, format: date }
+                      pasienMasuk: { type: integer }
+                      pasienKeluar: { type: integer }
+                      bedTerisi: { type: integer }
+                      bedTotal: { type: integer }
+              oneOf:
+                - required: [batchId, puskesmasKode]
+                - required: [batchId, puskesmasId]
+            examples:
+              full_all:
+                summary: Kirim semua modul lintas klaster
+                value:
+                  batchId: EPUS-BUMIAYU-2026-02-LK-0001
+                  puskesmasKode: "3329XXXX"
+                  gawatDarurat:
+                    - tanggal: 2026-02-01
+                      triaseMerah: 2
+                      triaseKuning: 6
+                      triaseHijau: 18
+                  farmasi:
+                    - tanggal: 2026-02-01
+                      jumlahResep: 140
+                      obatKeluar: 390
+                      racikan: 12
+                  laboratorium:
+                    - tanggal: 2026-02-01
+                      jumlahPemeriksaan: 55
+                      hematologi: 20
+                      kimiaKlinik: 25
+                      urinalisis: 10
+                  rawatInap:
+                    - tanggal: 2026-02-01
+                      pasienMasuk: 3
+                      pasienKeluar: 2
+                      bedTerisi: 10
+                      bedTotal: 12
+              only_farmasi:
+                summary: Kirim Farmasi saja
+                value:
+                  batchId: EPUS-BUMIAYU-2026-02-LK-FARMASI-0001
+                  puskesmasKode: "3329XXXX"
+                  farmasi:
+                    - tanggal: 2026-02-01
+                      jumlahResep: 140
+                      obatKeluar: 390
+                      racikan: 12
+      responses:
+        '200':
+          description: Data diterima dan diproses
+          content:
+            application/json:
+              schema: { type: object, additionalProperties: true }
+        '400':
+          description: Validasi gagal
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+        '401':
+          description: Signature invalid
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+        '500':
+          description: Kesalahan server
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+
+  /api/eis/monitoring:
+    get:
+      tags: [Monitoring]
+      summary: Data monitoring
+      parameters:
+        - $ref: '#/components/parameters/PuskesmasId'
+        - $ref: '#/components/parameters/Bulan'
+        - $ref: '#/components/parameters/Tahun'
+      responses:
+        '200':
+          description: Data monitoring
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/KlasterGenericResponse'
+
+  /api/eis/puskesmas:
+    get:
+      tags: [Puskesmas]
+      summary: Daftar puskesmas (EIS)
+      responses:
+        '200':
+          description: Daftar puskesmas
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PuskesmasListResponse'
+
+  /api/eis/puskesmas/{id}:
+    get:
+      tags: [Puskesmas]
+      summary: Detail analitik puskesmas
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - $ref: '#/components/parameters/AuthorizationHeader'
+        - $ref: '#/components/parameters/Period'
+      responses:
+        '200':
+          description: Detail puskesmas
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PuskesmasDetailResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Akses ditolak
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Puskesmas tidak ditemukan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/puskesmas:
+    get:
+      tags: [Puskesmas]
+      summary: Daftar puskesmas (public)
+      responses:
+        '200':
+          description: Daftar puskesmas
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicPuskesmasListResponse'
+        '500':
+          description: Kesalahan server
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
