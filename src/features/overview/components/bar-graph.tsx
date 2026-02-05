@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import Link from 'next/link';
 import { Bar, BarChart, CartesianGrid, XAxis } from 'recharts';
 
 import {
@@ -10,6 +11,7 @@ import {
   CardHeader,
   CardTitle
 } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import {
   ChartConfig,
   ChartContainer,
@@ -183,6 +185,13 @@ export function BarGraph() {
             />
           </BarChart>
         </ChartContainer>
+        <div className='mt-4 border-t pt-3'>
+          <Button variant='outline' size='sm' className='w-full' asChild>
+            <Link href='/dashboard/laporan?report=kunjungan'>
+              Lihat Lebih Lanjut →
+            </Link>
+          </Button>
+        </div>
       </CardContent>
     </Card>
   );

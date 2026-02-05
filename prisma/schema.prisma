@@ -534,6 +534,25 @@ model TopObat {
 }
 
 // ============================================
+// SIKLUS HIDUP PASIEN (Life Cycle Data)
+// ============================================
+
+model SiklusHidupPasien {
+  id            String   @id @default(cuid())
+  puskesmasId   String   @map("puskesmas_id")
+  golonganUmur  String   @map("golongan_umur") // 'bayi', 'balita', 'anak', 'remaja', 'dewasa', 'lansia'
+  jenisKelamin  String   @map("jenis_kelamin") // 'L', 'P'
+  jumlah        Int
+  bulan         Int
+  tahun         Int
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  @@unique([puskesmasId, golonganUmur, jenisKelamin, bulan, tahun])
+  @@index([puskesmasId])
+  @@map("siklus_hidup_pasien")
+}
+
+// ============================================
 // OVERVIEW SUMMARY (Aggregated data for dashboard)
 // ============================================
 

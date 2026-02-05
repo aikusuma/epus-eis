@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import Link from 'next/link';
 import { IconMars, IconVenus } from '@tabler/icons-react';
 import { Label, Pie, PieChart } from 'recharts';
 
@@ -19,6 +20,7 @@ import {
   ChartTooltipContent
 } from '@/components/ui/chart';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Button } from '@/components/ui/button';
 import { useOverviewData } from '@/hooks/use-eis-data';
 
 const chartConfig = {
@@ -188,6 +190,13 @@ export function PieGraph() {
           Laki-laki: {(100 - parseFloat(perempuanPercent)).toFixed(1)}%
         </div>
         <div className='text-muted-foreground leading-none'>Data bulan ini</div>
+        <div className='mt-3 w-full'>
+          <Button variant='outline' size='sm' className='w-full' asChild>
+            <Link href='/dashboard/laporan?report=kunjungan'>
+              Lihat Lebih Lanjut →
+            </Link>
+          </Button>
+        </div>
       </CardFooter>
     </Card>
   );

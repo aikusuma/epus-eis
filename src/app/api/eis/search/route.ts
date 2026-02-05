@@ -124,6 +124,76 @@ const getTrendByIcd10 = unstable_cache(
   { revalidate: 300 }
 );
 
+// Get monthly trend data for specific ICD-10 (last 12 months)
+const getMonthlyTrendByIcd10 = unstable_cache(
+  async (icd10Id: string) => {
+    // Get all diagnoses for this ICD-10 in last 12 months
+    const startDate = new Date();
+    startDate.setMonth(startDate.getMonth() - 12);
+
+    const diagnoses = await prisma.diagnosisDummy.findMany({
+      where: {
+        icd10Id,
+        tanggalPeriksa: { gte: startDate }
+      },
+      select: {
+        tanggalPeriksa: true,
+        pasienGender: true
+      }
+    });
+
+    // Group by month
+    const monthlyData: Record<
+      string,
+      { laki: number; perempuan: number; total: number }
+    > = {};
+
+    diagnoses.forEach((d: any) => {
+      const date = new Date(d.tanggalPeriksa);
+      const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+
+      if (!monthlyData[monthKey]) {
+        monthlyData[monthKey] = { laki: 0, perempuan: 0, total: 0 };
+      }
+
+      monthlyData[monthKey].total++;
+      if (d.pasienGender === 'L') {
+        monthlyData[monthKey].laki++;
+      } else {
+        monthlyData[monthKey].perempuan++;
+      }
+    });
+
+    // Convert to array and sort by date
+    return Object.entries(monthlyData)
+      .map(([date, data]) => {
+        const [year, month] = date.split('-');
+        const monthNames = [
+          'Jan',
+          'Feb',
+          'Mar',
+          'Apr',
+          'Mei',
+          'Jun',
+          'Jul',
+          'Ags',
+          'Sep',
+          'Okt',
+          'Nov',
+          'Des'
+        ];
+        return {
+          date,
+          bulan: `${monthNames[parseInt(month) - 1]} ${year}`,
+          ...data
+        };
+      })
+      .sort((a, b) => a.date.localeCompare(b.date));
+  },
+  ['monthly-trend-by-icd10'],
+  { revalidate: 300 }
+);
+
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
@@ -155,6 +225,15 @@ export async function GET(req: NextRequest) {
     // Get trend data for specific ICD-10
     if (type === 'trend' && icd10Id) {
       const trend = await getTrendByIcd10(icd10Id);
+      return NextResponse.json({
+        success: true,
+        data: trend
+      });
+    }
+
+    // Get monthly trend data for specific ICD-10
+    if (type === 'monthly-trend' && icd10Id) {
+      const trend = await getMonthlyTrendByIcd10(icd10Id);
       return NextResponse.json({
         success: true,
         data: trend

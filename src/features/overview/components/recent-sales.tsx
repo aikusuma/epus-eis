@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
+import Link from 'next/link';
 import {
   Card,
   CardHeader,
@@ -10,6 +11,7 @@ import {
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Button } from '@/components/ui/button';
 import {
   IconVirus,
   IconHeartbeat,
@@ -143,6 +145,13 @@ export function RecentSales() {
               </div>
             );
           })}
+        </div>
+        <div className='mt-4 border-t pt-3'>
+          <Button variant='outline' size='sm' className='w-full' asChild>
+            <Link href='/dashboard/laporan?report=penyakit'>
+              Lihat Lebih Lanjut →
+            </Link>
+          </Button>
         </div>
       </CardContent>
     </Card>

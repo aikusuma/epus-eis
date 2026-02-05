@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import Link from 'next/link';
 import { IconTrendingUp } from '@tabler/icons-react';
 import { Area, AreaChart, CartesianGrid, XAxis } from 'recharts';
 
@@ -19,6 +20,7 @@ import {
   ChartTooltipContent
 } from '@/components/ui/chart';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Button } from '@/components/ui/button';
 import { useOverviewData } from '@/hooks/use-eis-data';
 
 // Note: This chart uses monthly trend data
@@ -159,6 +161,13 @@ export function AreaGraph() {
             <div className='text-muted-foreground flex items-center gap-2 leading-none'>
               Feb 2024 - Jan 2025
             </div>
+          </div>
+          <div className='ml-auto'>
+            <Button variant='outline' size='sm' asChild>
+              <Link href='/dashboard/laporan?report=penyakit'>
+                Lihat Lebih Lanjut →
+              </Link>
+            </Button>
           </div>
         </div>
       </CardFooter>

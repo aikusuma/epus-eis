@@ -68,6 +68,14 @@ interface TrendData {
   total: number;
 }
 
+interface MonthlyTrendData {
+  date: string;
+  bulan: string;
+  laki: number;
+  perempuan: number;
+  total: number;
+}
+
 export default function CariPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -78,6 +86,9 @@ export default function CariPage() {
   const [selectedIcd10, setSelectedIcd10] = useState<Icd10 | null>(null);
   const [diagnoses, setDiagnoses] = useState<Diagnosis[]>([]);
   const [trendData, setTrendData] = useState<TrendData[]>([]);
+  const [monthlyTrendData, setMonthlyTrendData] = useState<MonthlyTrendData[]>(
+    []
+  );
 
   // Fetch top ICD-10 on mount
   useEffect(() => {
@@ -132,21 +143,26 @@ export default function CariPage() {
     setIsLoadingDiagnoses(true);
     setIsLoadingTrend(true);
 
-    // Fetch diagnoses and trend in parallel
+    // Fetch diagnoses, weekly trend, and monthly trend in parallel
     try {
-      const [diagRes, trendRes] = await Promise.all([
+      const [diagRes, trendRes, monthlyRes] = await Promise.all([
         fetch(`/api/eis/search?type=diagnoses&icd10Id=${icd10.id}&limit=50`),
-        fetch(`/api/eis/search?type=trend&icd10Id=${icd10.id}`)
+        fetch(`/api/eis/search?type=trend&icd10Id=${icd10.id}`),
+        fetch(`/api/eis/search?type=monthly-trend&icd10Id=${icd10.id}`)
       ]);
 
       const diagData = await diagRes.json();
       const trendDataRes = await trendRes.json();
+      const monthlyDataRes = await monthlyRes.json();
 
       if (diagData.success) {
         setDiagnoses(diagData.data);
       }
       if (trendDataRes.success) {
         setTrendData(trendDataRes.data);
+      }
+      if (monthlyDataRes.success) {
+        setMonthlyTrendData(monthlyDataRes.data);
       }
     } catch (error) {
       console.error('Failed to fetch data:', error);
@@ -277,6 +293,7 @@ export default function CariPage() {
                   setSelectedIcd10(null);
                   setDiagnoses([]);
                   setTrendData([]);
+                  setMonthlyTrendData([]);
                 }}
               >
                 ← Kembali ke pencarian
@@ -506,6 +523,66 @@ export default function CariPage() {
                             fillOpacity={0.6}
                           />
                         </AreaChart>
+                      </ResponsiveContainer>
+                    )}
+                  </CardContent>
+                </Card>
+
+                {/* Monthly Trend Chart */}
+                <Card className='mt-4'>
+                  <CardHeader>
+                    <CardTitle className='flex items-center gap-2 text-lg'>
+                      <IconChartBar className='h-5 w-5' />
+                      Trend Bulanan (12 Bulan Terakhir)
+                    </CardTitle>
+                    <CardDescription>
+                      Jumlah kasus per bulan berdasarkan jenis kelamin
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    {isLoadingTrend ? (
+                      <div className='bg-muted h-[300px] animate-pulse rounded-lg' />
+                    ) : monthlyTrendData.length === 0 ? (
+                      <div className='text-muted-foreground flex h-[300px] items-center justify-center'>
+                        Tidak ada data trend bulanan
+                      </div>
+                    ) : (
+                      <ResponsiveContainer width='100%' height={300}>
+                        <BarChart data={monthlyTrendData}>
+                          <CartesianGrid
+                            strokeDasharray='3 3'
+                            className='stroke-muted'
+                          />
+                          <XAxis
+                            dataKey='bulan'
+                            className='text-xs'
+                            tick={{ fontSize: 10 }}
+                            angle={-45}
+                            textAnchor='end'
+                            height={60}
+                          />
+                          <YAxis className='text-xs' tick={{ fontSize: 11 }} />
+                          <Tooltip
+                            contentStyle={{
+                              backgroundColor: 'hsl(var(--card))',
+                              border: '1px solid hsl(var(--border))',
+                              borderRadius: '8px'
+                            }}
+                          />
+                          <Legend />
+                          <Bar
+                            dataKey='laki'
+                            name='Laki-laki'
+                            stackId='1'
+                            fill='#3b82f6'
+                          />
+                          <Bar
+                            dataKey='perempuan'
+                            name='Perempuan'
+                            stackId='1'
+                            fill='#ec4899'
+                          />
+                        </BarChart>
                       </ResponsiveContainer>
                     )}
                   </CardContent>
