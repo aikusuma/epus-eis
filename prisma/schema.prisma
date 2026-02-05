@@ -144,22 +144,35 @@ model Puskesmas {
 // ============================================
 
 model Icd10 {
-  id              String   @id @default(cuid())
-  code            String   @unique
-  name            String
-  nameEn          String?  @map("name_en")
-  groupCode       String   @map("group_code") // 'ISPA', 'PNEUMONIA', 'HIPERTENSI', etc.
-  groupName       String   @map("group_name")
-  kategoriProgram String   @map("kategori_program") // 'PTM', 'menular', 'KIA', 'umum'
-  chapter         String?  // ICD-10 chapter (I-XXII)
-  blockRange      String?  @map("block_range")
-  isActive        Boolean  @default(true) @map("is_active")
-  createdAt       DateTime @default(now()) @map("created_at")
-  updatedAt       DateTime @updatedAt @map("updated_at")
+  id        String   @id @default(cuid())
+  code      String   @unique
+  display   String
+  version   String   @default("ICD10_2010")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
-  @@index([groupCode])
-  @@index([kategoriProgram])
+  // Relations
+  diagnoses DiagnosisDummy[]
+
+  @@index([code])
   @@map("icd10")
+}
+
+// Dummy data untuk demo - Diagnosis pasien
+model DiagnosisDummy {
+  id            String   @id @default(cuid())
+  icd10Id       String   @map("icd10_id")
+  icd10         Icd10    @relation(fields: [icd10Id], references: [id])
+  pasienNama    String   @map("pasien_nama")
+  pasienUmur    Int      @map("pasien_umur")
+  pasienGender  String   @map("pasien_gender") // L / P
+  puskesmas     String
+  tanggalPeriksa DateTime @map("tanggal_periksa")
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  @@index([icd10Id])
+  @@index([tanggalPeriksa])
+  @@map("diagnosis_dummy")
 }
 
 // ============================================

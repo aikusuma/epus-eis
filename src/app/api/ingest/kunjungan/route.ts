@@ -103,7 +103,12 @@ export async function POST(req: NextRequest) {
     // Verify puskesmas exists
     const puskesmas = await db.puskesmas.findUnique({
       where: { id: data.puskesmasId },
-      select: { id: true, name: true, wilayahId: true }
+      select: {
+        id: true,
+        kodePuskesmas: true,
+        namaPuskesmas: true,
+        wilayahId: true
+      }
     });
 
     if (!puskesmas) {
@@ -139,9 +144,9 @@ export async function POST(req: NextRequest) {
     // Create ingestion log
     const ingestionLog = await db.ingestionLog.create({
       data: {
-        source: 'e-puskesmas',
+        eventType: 'kunjungan',
         puskesmasId: data.puskesmasId,
-        recordCount: data.records.length,
+        payload: data as object,
         status: 'processing'
       }
     });
@@ -226,8 +231,8 @@ export async function POST(req: NextRequest) {
       await db.ingestionLog.update({
         where: { id: ingestionLog.id },
         data: {
-          status: 'completed',
-          completedAt: new Date()
+          status: 'processed',
+          processedAt: new Date()
         }
       });
 
@@ -251,7 +256,7 @@ export async function POST(req: NextRequest) {
         ingestionId: ingestionLog.id,
         summary: {
           puskesmasId: data.puskesmasId,
-          puskesmasName: puskesmas.name,
+          puskesmasName: puskesmas.namaPuskesmas,
           date: data.date,
           recordsReceived: data.records.length,
           kunjunganRowsInserted: factKunjunganRows.length,
@@ -264,11 +269,11 @@ export async function POST(req: NextRequest) {
         where: { id: ingestionLog.id },
         data: {
           status: 'failed',
-          errorMessage:
+          errorMsg:
             insertError instanceof Error
               ? insertError.message
               : 'Unknown error',
-          completedAt: new Date()
+          processedAt: new Date()
         }
       });
 
@@ -305,25 +310,18 @@ export async function GET(req: NextRequest) {
     const logs = await db.ingestionLog.findMany({
       where: puskesmasId ? { puskesmasId } : undefined,
       orderBy: { createdAt: 'desc' },
-      take: limit,
-      include: {
-        puskesmas: {
-          select: { name: true }
-        }
-      }
+      take: limit
     });
 
     return NextResponse.json({
       logs: logs.map((log: (typeof logs)[number]) => ({
         id: log.id,
-        source: log.source,
+        eventType: log.eventType,
         puskesmasId: log.puskesmasId,
-        puskesmasName: log.puskesmas?.name,
-        recordCount: log.recordCount,
         status: log.status,
-        errorMessage: log.errorMessage,
+        errorMsg: log.errorMsg,
         createdAt: log.createdAt,
-        completedAt: log.completedAt
+        processedAt: log.processedAt
       }))
     });
   } catch (error) {

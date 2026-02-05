@@ -249,67 +249,229 @@ async function main() {
   console.log('✅ Wilayah created:', wilayahRecords.length);
 
   // ============================================
-  // PUSKESMAS (Sample data)
+  // PUSKESMAS (Complete data Kabupaten Brebes)
   // ============================================
   const puskesmasData = [
     {
       kodePuskesmas: 'PKM001',
-      namaPuskesmas: 'Puskesmas Brebes',
-      wilayahKode: '332917',
-      jenis: 'rawat_inap'
+      namaPuskesmas: 'Puskesmas Winduaji',
+      wilayahKode: '332909',
+      jenis: 'non_rawat_inap'
     },
     {
       kodePuskesmas: 'PKM002',
-      namaPuskesmas: 'Puskesmas Bumiayu I',
-      wilayahKode: '332903',
-      jenis: 'rawat_inap'
+      namaPuskesmas: 'Puskesmas Klikiran',
+      wilayahKode: '332904',
+      jenis: 'non_rawat_inap'
     },
     {
       kodePuskesmas: 'PKM003',
-      namaPuskesmas: 'Puskesmas Bumiayu II',
-      wilayahKode: '332903',
-      jenis: 'non_rawat_inap'
+      namaPuskesmas: 'Puskesmas Paguyangan',
+      wilayahKode: '332904',
+      jenis: 'rawat_inap'
     },
     {
       kodePuskesmas: 'PKM004',
-      namaPuskesmas: 'Puskesmas Losari',
-      wilayahKode: '332910',
-      jenis: 'rawat_inap'
-    },
-    {
-      kodePuskesmas: 'PKM005',
-      namaPuskesmas: 'Puskesmas Ketanggungan',
-      wilayahKode: '332908',
-      jenis: 'rawat_inap'
-    },
-    {
-      kodePuskesmas: 'PKM006',
-      namaPuskesmas: 'Puskesmas Bulakamba',
-      wilayahKode: '332913',
+      namaPuskesmas: 'Puskesmas Pemaron',
+      wilayahKode: '332917',
       jenis: 'non_rawat_inap'
     },
     {
-      kodePuskesmas: 'PKM007',
+      kodePuskesmas: 'PKM005',
       namaPuskesmas: 'Puskesmas Wanasari',
       wilayahKode: '332914',
       jenis: 'non_rawat_inap'
     },
     {
+      kodePuskesmas: 'PKM006',
+      namaPuskesmas: 'Puskesmas Bumiayu',
+      wilayahKode: '332903',
+      jenis: 'rawat_inap'
+    },
+    {
+      kodePuskesmas: 'PKM007',
+      namaPuskesmas: 'Puskesmas Tanjung Brebes',
+      wilayahKode: '332911',
+      jenis: 'rawat_inap'
+    },
+    {
       kodePuskesmas: 'PKM008',
+      namaPuskesmas: 'Puskesmas Jatirokeh',
+      wilayahKode: '332903',
+      jenis: 'non_rawat_inap'
+    },
+    {
+      kodePuskesmas: 'PKM009',
+      namaPuskesmas: 'Puskesmas Buaran',
+      wilayahKode: '332917',
+      jenis: 'non_rawat_inap'
+    },
+    {
+      kodePuskesmas: 'PKM010',
+      namaPuskesmas: 'Puskesmas Cikakak',
+      wilayahKode: '332909',
+      jenis: 'non_rawat_inap'
+    },
+    {
+      kodePuskesmas: 'PKM011',
       namaPuskesmas: 'Puskesmas Jatibarang',
       wilayahKode: '332916',
       jenis: 'rawat_inap'
     },
     {
-      kodePuskesmas: 'PKM009',
+      kodePuskesmas: 'PKM012',
+      namaPuskesmas: 'Puskesmas Bantarkawung',
+      wilayahKode: '332902',
+      jenis: 'rawat_inap'
+    },
+    {
+      kodePuskesmas: 'PKM013',
+      namaPuskesmas: 'Puskesmas Kaligangsa',
+      wilayahKode: '332917',
+      jenis: 'non_rawat_inap'
+    },
+    {
+      kodePuskesmas: 'PKM014',
+      namaPuskesmas: 'Puskesmas Sirampog',
+      wilayahKode: '332905',
+      jenis: 'rawat_inap'
+    },
+    {
+      kodePuskesmas: 'PKM015',
+      namaPuskesmas: 'Puskesmas Banjarharjo',
+      wilayahKode: '332909',
+      jenis: 'rawat_inap'
+    },
+    {
+      kodePuskesmas: 'PKM016',
+      namaPuskesmas: 'Puskesmas Brebes',
+      wilayahKode: '332917',
+      jenis: 'rawat_inap'
+    },
+    {
+      kodePuskesmas: 'PKM017',
+      namaPuskesmas: 'Puskesmas Cikeusal Kidul',
+      wilayahKode: '332908',
+      jenis: 'non_rawat_inap'
+    },
+    {
+      kodePuskesmas: 'PKM018',
+      namaPuskesmas: 'Puskesmas Ketanggungan',
+      wilayahKode: '332908',
+      jenis: 'rawat_inap'
+    },
+    {
+      kodePuskesmas: 'PKM019',
+      namaPuskesmas: 'Puskesmas Larangan',
+      wilayahKode: '332907',
+      jenis: 'rawat_inap'
+    },
+    {
+      kodePuskesmas: 'PKM020',
+      namaPuskesmas: 'Puskesmas Sitanggal',
+      wilayahKode: '332907',
+      jenis: 'non_rawat_inap'
+    },
+    {
+      kodePuskesmas: 'PKM021',
+      namaPuskesmas: 'Puskesmas Bulakamba',
+      wilayahKode: '332913',
+      jenis: 'rawat_inap'
+    },
+    {
+      kodePuskesmas: 'PKM022',
+      namaPuskesmas: 'Puskesmas Kutamendala',
+      wilayahKode: '332906',
+      jenis: 'non_rawat_inap'
+    },
+    {
+      kodePuskesmas: 'PKM024',
+      namaPuskesmas: 'Puskesmas Losari',
+      wilayahKode: '332910',
+      jenis: 'rawat_inap'
+    },
+    {
+      kodePuskesmas: 'PKM025',
+      namaPuskesmas: 'Puskesmas Siwuluh',
+      wilayahKode: '332913',
+      jenis: 'non_rawat_inap'
+    },
+    {
+      kodePuskesmas: 'PKM026',
+      namaPuskesmas: 'Puskesmas Bentar',
+      wilayahKode: '332901',
+      jenis: 'non_rawat_inap'
+    },
+    {
+      kodePuskesmas: 'PKM027',
+      namaPuskesmas: 'Puskesmas Bojongsari',
+      wilayahKode: '332910',
+      jenis: 'non_rawat_inap'
+    },
+    {
+      kodePuskesmas: 'PKM028',
+      namaPuskesmas: 'Puskesmas Kecipir',
+      wilayahKode: '332910',
+      jenis: 'non_rawat_inap'
+    },
+    {
+      kodePuskesmas: 'PKM029',
+      namaPuskesmas: 'Puskesmas Kersana',
+      wilayahKode: '332912',
+      jenis: 'rawat_inap'
+    },
+    {
+      kodePuskesmas: 'PKM030',
+      namaPuskesmas: 'Puskesmas Tonjong',
+      wilayahKode: '332906',
+      jenis: 'rawat_inap'
+    },
+    {
+      kodePuskesmas: 'PKM031',
+      namaPuskesmas: 'Puskesmas Kluwut',
+      wilayahKode: '332913',
+      jenis: 'non_rawat_inap'
+    },
+    {
+      kodePuskesmas: 'PKM032',
       namaPuskesmas: 'Puskesmas Salem',
       wilayahKode: '332901',
       jenis: 'rawat_inap'
     },
     {
-      kodePuskesmas: 'PKM010',
-      namaPuskesmas: 'Puskesmas Bantarkawung',
-      wilayahKode: '332902',
+      kodePuskesmas: 'PKM033',
+      namaPuskesmas: 'Puskesmas Jagalempeni',
+      wilayahKode: '332914',
+      jenis: 'non_rawat_inap'
+    },
+    {
+      kodePuskesmas: 'PKM034',
+      namaPuskesmas: 'Puskesmas Kalimati',
+      wilayahKode: '332917',
+      jenis: 'non_rawat_inap'
+    },
+    {
+      kodePuskesmas: 'PKM035',
+      namaPuskesmas: 'Puskesmas Bandungsari',
+      wilayahKode: '332909',
+      jenis: 'non_rawat_inap'
+    },
+    {
+      kodePuskesmas: 'PKM036',
+      namaPuskesmas: 'Puskesmas Sidamulya',
+      wilayahKode: '332914',
+      jenis: 'non_rawat_inap'
+    },
+    {
+      kodePuskesmas: 'PKM037',
+      namaPuskesmas: 'Puskesmas Luwunggede',
+      wilayahKode: '332910',
+      jenis: 'non_rawat_inap'
+    },
+    {
+      kodePuskesmas: 'PKM038',
+      namaPuskesmas: 'Puskesmas Kemurang Wetan',
+      wilayahKode: '332911',
       jenis: 'non_rawat_inap'
     }
   ];
@@ -335,218 +497,10 @@ async function main() {
   console.log('✅ Puskesmas created:', puskesmasData.length);
 
   // ============================================
-  // ICD-10 (Priority diseases)
+  // ICD-10 (Priority diseases) - Will be seeded separately from CSV
+  // Skip ICD-10 seeding here, use seed-icd10.ts instead
   // ============================================
-  const icd10Data = [
-    // ISPA
-    {
-      code: 'J00',
-      name: 'Nasofaringitis akut (common cold)',
-      groupCode: 'ISPA',
-      groupName: 'ISPA',
-      kategoriProgram: 'menular'
-    },
-    {
-      code: 'J01',
-      name: 'Sinusitis akut',
-      groupCode: 'ISPA',
-      groupName: 'ISPA',
-      kategoriProgram: 'menular'
-    },
-    {
-      code: 'J02',
-      name: 'Faringitis akut',
-      groupCode: 'ISPA',
-      groupName: 'ISPA',
-      kategoriProgram: 'menular'
-    },
-    {
-      code: 'J03',
-      name: 'Tonsilitis akut',
-      groupCode: 'ISPA',
-      groupName: 'ISPA',
-      kategoriProgram: 'menular'
-    },
-    {
-      code: 'J06',
-      name: 'Infeksi saluran napas atas akut',
-      groupCode: 'ISPA',
-      groupName: 'ISPA',
-      kategoriProgram: 'menular'
-    },
-    // Pneumonia
-    {
-      code: 'J12',
-      name: 'Pneumonia viral',
-      groupCode: 'PNEUMONIA',
-      groupName: 'Pneumonia',
-      kategoriProgram: 'menular'
-    },
-    {
-      code: 'J13',
-      name: 'Pneumonia pneumokokus',
-      groupCode: 'PNEUMONIA',
-      groupName: 'Pneumonia',
-      kategoriProgram: 'menular'
-    },
-    {
-      code: 'J18',
-      name: 'Pneumonia tidak spesifik',
-      groupCode: 'PNEUMONIA',
-      groupName: 'Pneumonia',
-      kategoriProgram: 'menular'
-    },
-    // Hipertensi
-    {
-      code: 'I10',
-      name: 'Hipertensi esensial (primer)',
-      groupCode: 'HIPERTENSI',
-      groupName: 'Hipertensi',
-      kategoriProgram: 'PTM'
-    },
-    {
-      code: 'I11',
-      name: 'Penyakit jantung hipertensi',
-      groupCode: 'HIPERTENSI',
-      groupName: 'Hipertensi',
-      kategoriProgram: 'PTM'
-    },
-    {
-      code: 'I15',
-      name: 'Hipertensi sekunder',
-      groupCode: 'HIPERTENSI',
-      groupName: 'Hipertensi',
-      kategoriProgram: 'PTM'
-    },
-    // Diabetes
-    {
-      code: 'E10',
-      name: 'Diabetes melitus tipe 1',
-      groupCode: 'DIABETES',
-      groupName: 'Diabetes Mellitus',
-      kategoriProgram: 'PTM'
-    },
-    {
-      code: 'E11',
-      name: 'Diabetes melitus tipe 2',
-      groupCode: 'DIABETES',
-      groupName: 'Diabetes Mellitus',
-      kategoriProgram: 'PTM'
-    },
-    {
-      code: 'E14',
-      name: 'Diabetes melitus tidak spesifik',
-      groupCode: 'DIABETES',
-      groupName: 'Diabetes Mellitus',
-      kategoriProgram: 'PTM'
-    },
-    // Penyakit Jantung
-    {
-      code: 'I20',
-      name: 'Angina pektoris',
-      groupCode: 'JANTUNG',
-      groupName: 'Penyakit Jantung',
-      kategoriProgram: 'PTM'
-    },
-    {
-      code: 'I21',
-      name: 'Infark miokard akut',
-      groupCode: 'JANTUNG',
-      groupName: 'Penyakit Jantung',
-      kategoriProgram: 'PTM'
-    },
-    {
-      code: 'I25',
-      name: 'Penyakit jantung iskemik kronis',
-      groupCode: 'JANTUNG',
-      groupName: 'Penyakit Jantung',
-      kategoriProgram: 'PTM'
-    },
-    // Gangguan Cerna
-    {
-      code: 'A09',
-      name: 'Diare dan gastroenteritis',
-      groupCode: 'CERNA',
-      groupName: 'Gangguan Pencernaan',
-      kategoriProgram: 'menular'
-    },
-    {
-      code: 'K29',
-      name: 'Gastritis dan duodenitis',
-      groupCode: 'CERNA',
-      groupName: 'Gangguan Pencernaan',
-      kategoriProgram: 'umum'
-    },
-    {
-      code: 'K30',
-      name: 'Dispepsia fungsional',
-      groupCode: 'CERNA',
-      groupName: 'Gangguan Pencernaan',
-      kategoriProgram: 'umum'
-    },
-    // TB
-    {
-      code: 'A15',
-      name: 'TB paru terkonfirmasi bakteriologis',
-      groupCode: 'TB',
-      groupName: 'Tuberkulosis',
-      kategoriProgram: 'menular'
-    },
-    {
-      code: 'A16',
-      name: 'TB paru tanpa konfirmasi bakteriologis',
-      groupCode: 'TB',
-      groupName: 'Tuberkulosis',
-      kategoriProgram: 'menular'
-    },
-    // DBD
-    {
-      code: 'A90',
-      name: 'Demam dengue',
-      groupCode: 'DBD',
-      groupName: 'Demam Berdarah',
-      kategoriProgram: 'menular'
-    },
-    {
-      code: 'A91',
-      name: 'Demam berdarah dengue',
-      groupCode: 'DBD',
-      groupName: 'Demam Berdarah',
-      kategoriProgram: 'menular'
-    },
-    // KIA
-    {
-      code: 'O80',
-      name: 'Persalinan tunggal spontan',
-      groupCode: 'KIA',
-      groupName: 'Kesehatan Ibu & Anak',
-      kategoriProgram: 'KIA'
-    },
-    {
-      code: 'O21',
-      name: 'Hiperemesis gravidarum',
-      groupCode: 'KIA',
-      groupName: 'Kesehatan Ibu & Anak',
-      kategoriProgram: 'KIA'
-    },
-    {
-      code: 'O46',
-      name: 'Perdarahan antepartum',
-      groupCode: 'KIA',
-      groupName: 'Kesehatan Ibu & Anak',
-      kategoriProgram: 'KIA'
-    }
-  ];
-
-  for (const icd of icd10Data) {
-    await prisma.icd10.upsert({
-      where: { code: icd.code },
-      update: {},
-      create: icd
-    });
-  }
-
-  console.log('✅ ICD-10 created:', icd10Data.length);
+  console.log('⏭️  ICD-10 skipped (use: bun run prisma/seed-icd10.ts)');
 
   // ============================================
   // DEFAULT ADMIN USER

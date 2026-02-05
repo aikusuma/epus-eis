@@ -26,11 +26,12 @@ export async function GET(req: NextRequest) {
     const kategori = searchParams.get('kategori'); // 'PTM', 'menular', 'KIA', 'umum'
     const group = searchParams.get('group'); // 'ISPA', 'HIPERTENSI', etc.
     const limit = Math.min(parseInt(searchParams.get('limit') ?? '20'), 50);
-    const prioritasOnly = searchParams.get('prioritas') === 'true';
 
     // Build query conditions using Prisma types
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const where: any = {};
+    const where: any = {
+      isActive: true
+    };
 
     if (q.length >= 2) {
       where.OR = [
@@ -47,35 +48,33 @@ export async function GET(req: NextRequest) {
       where.groupCode = group;
     }
 
-    if (prioritasOnly) {
-      where.prioritas = true;
-    }
-
     // Query ICD-10 from Postgres
     const results = await db.icd10.findMany({
       where,
       take: limit,
-      orderBy: [{ prioritas: 'desc' }, { code: 'asc' }],
+      orderBy: [{ groupCode: 'asc' }, { code: 'asc' }],
       select: {
         code: true,
         name: true,
         groupCode: true,
         groupName: true,
-        kategoriProgram: true,
-        prioritas: true
+        kategoriProgram: true
       }
     });
 
     // Get distinct groups for filter options
     const groups = await db.icd10.groupBy({
       by: ['groupCode', 'groupName'],
-      where: kategori ? { kategoriProgram: kategori } : undefined,
+      where: kategori
+        ? { kategoriProgram: kategori, isActive: true }
+        : { isActive: true },
       orderBy: { groupCode: 'asc' }
     });
 
     // Get distinct categories
     const categories = await db.icd10.groupBy({
       by: ['kategoriProgram'],
+      where: { isActive: true },
       orderBy: { kategoriProgram: 'asc' }
     });
 
@@ -87,8 +86,7 @@ export async function GET(req: NextRequest) {
         displayName: `${r.code} - ${r.name}`,
         groupCode: r.groupCode,
         groupName: r.groupName,
-        kategori: r.kategoriProgram,
-        prioritas: r.prioritas
+        kategori: r.kategoriProgram
       })),
       total: results.length,
       filters: {

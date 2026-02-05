@@ -17,6 +17,7 @@ import {
   IconVirus
 } from '@tabler/icons-react';
 import React from 'react';
+import OverviewFilter from './overview-filter';
 
 export default function OverViewLayout({
   sales,
@@ -32,6 +33,8 @@ export default function OverViewLayout({
   return (
     <PageContainer>
       <div className='flex flex-1 flex-col space-y-2'>
+        <OverviewFilter />
+
         <div className='flex items-center justify-between space-y-2'>
           <h2 className='text-2xl font-bold tracking-tight'>
             Dashboard EIS Dinkes Brebes

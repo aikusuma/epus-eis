@@ -212,11 +212,11 @@ export async function GET(
     return NextResponse.json({
       puskesmas: {
         id: puskesmas.id,
-        name: puskesmas.name,
-        type: puskesmas.type,
-        kecamatan: puskesmas.wilayah?.name,
+        name: puskesmas.namaPuskesmas,
+        type: puskesmas.jenis,
+        kecamatan: puskesmas.wilayah?.namaKecamatan,
         kecamatanId: puskesmas.wilayahId,
-        address: puskesmas.address
+        address: puskesmas.alamat
       },
       period,
       startDate: startDate.toISOString().split('T')[0],

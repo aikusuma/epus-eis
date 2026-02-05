@@ -14,50 +14,60 @@ export const navItems: NavItem[] = [
     items: []
   },
   {
-    title: 'Penyakit',
-    url: '#',
-    icon: 'stethoscope',
-    isActive: true,
-    items: [
-      {
-        title: 'Top Penyakit',
-        url: '/dashboard/penyakit/top',
-        icon: 'chartBar',
-        shortcut: ['p', 't']
-      },
-      {
-        title: 'Distribusi',
-        url: '/dashboard/penyakit/distribusi',
-        icon: 'chartPie',
-        shortcut: ['p', 'd']
-      },
-      {
-        title: 'Tren',
-        url: '/dashboard/penyakit/tren',
-        icon: 'chartLine',
-        shortcut: ['p', 'r']
-      }
-    ]
+    title: 'Cari',
+    url: '/dashboard/cari',
+    icon: 'search',
+    isActive: false,
+    shortcut: ['c', 'r'],
+    items: []
   },
   {
-    title: 'Puskesmas',
-    url: '#',
-    icon: 'building',
-    isActive: true,
-    items: [
-      {
-        title: 'Daftar Puskesmas',
-        url: '/dashboard/puskesmas',
-        icon: 'list',
-        shortcut: ['k', 'l']
-      },
-      {
-        title: 'Perbandingan',
-        url: '/dashboard/puskesmas/compare',
-        icon: 'compare',
-        shortcut: ['k', 'c']
-      }
-    ]
+    title: 'Klaster 1',
+    url: '/dashboard/klaster1',
+    icon: 'users',
+    isActive: false,
+    shortcut: ['k', '1'],
+    items: []
+  },
+  {
+    title: 'Klaster 2',
+    url: '/dashboard/klaster2',
+    icon: 'heart',
+    isActive: false,
+    shortcut: ['k', '2'],
+    items: []
+  },
+  {
+    title: 'Klaster 3',
+    url: '/dashboard/klaster3',
+    icon: 'stethoscope',
+    isActive: false,
+    shortcut: ['k', '3'],
+    items: []
+  },
+  {
+    title: 'Klaster 4',
+    url: '/dashboard/klaster4',
+    icon: 'alertTriangle',
+    isActive: false,
+    shortcut: ['k', '4'],
+    items: []
+  },
+  {
+    title: 'Lintas Klaster',
+    url: '/dashboard/lintas-klaster',
+    icon: 'layers',
+    isActive: false,
+    shortcut: ['l', 'k'],
+    items: []
+  },
+  {
+    title: 'Monitoring',
+    url: '/dashboard/monitoring',
+    icon: 'mapPin',
+    isActive: false,
+    shortcut: ['m', 'o'],
+    items: []
   },
   {
     title: 'Laporan',

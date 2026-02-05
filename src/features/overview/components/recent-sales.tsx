@@ -65,31 +65,31 @@ const topPenyakit = [
 export function RecentSales() {
   return (
     <Card className='h-full'>
-      <CardHeader>
-        <CardTitle>Top 5 Penyakit</CardTitle>
-        <CardDescription>
+      <CardHeader className='pb-2'>
+        <CardTitle className='text-base'>Top 5 Penyakit</CardTitle>
+        <CardDescription className='text-xs'>
           Berdasarkan jumlah kunjungan bulan ini
         </CardDescription>
       </CardHeader>
-      <CardContent>
-        <div className='space-y-6'>
+      <CardContent className='pt-0'>
+        <div className='space-y-3'>
           {topPenyakit.map((penyakit, index) => {
             const Icon = penyakit.icon;
             return (
-              <div key={index} className='flex items-center gap-3'>
-                <div className='bg-primary/10 text-primary flex h-9 w-9 items-center justify-center rounded-full'>
-                  <Icon className='h-4 w-4' />
+              <div key={index} className='flex items-center gap-2'>
+                <div className='bg-primary/10 text-primary flex h-7 w-7 items-center justify-center rounded-full'>
+                  <Icon className='h-3.5 w-3.5' />
                 </div>
-                <div className='min-w-0 flex-1 space-y-1'>
-                  <p className='truncate text-sm leading-none font-medium'>
+                <div className='min-w-0 flex-1 space-y-0.5'>
+                  <p className='truncate text-xs leading-none font-medium'>
                     {penyakit.name}
                   </p>
-                  <p className='text-muted-foreground text-xs'>
+                  <p className='text-muted-foreground text-[10px]'>
                     {penyakit.code}
                   </p>
                 </div>
-                <div className='flex flex-col items-end gap-1'>
-                  <span className='font-semibold tabular-nums'>
+                <div className='flex flex-col items-end gap-0.5'>
+                  <span className='text-sm font-semibold tabular-nums'>
                     {penyakit.count.toLocaleString('id-ID')}
                   </span>
                   <Badge
@@ -100,7 +100,7 @@ export function RecentSales() {
                           ? 'secondary'
                           : 'outline'
                     }
-                    className='text-xs'
+                    className='px-1 py-0 text-[10px]'
                   >
                     {penyakit.percent}
                   </Badge>

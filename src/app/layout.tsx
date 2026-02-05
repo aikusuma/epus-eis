@@ -9,6 +9,7 @@ import { cookies } from 'next/headers';
 import NextTopLoader from 'nextjs-toploader';
 import { NuqsAdapter } from 'nuqs/adapters/next/app';
 import '../styles/globals.css';
+import 'leaflet/dist/leaflet.css';
 
 const META_THEME_COLORS = {
   light: '#ffffff',
@@ -16,8 +17,30 @@ const META_THEME_COLORS = {
 };
 
 export const metadata: Metadata = {
-  title: 'Dashboard Analytics',
-  description: 'Analytics dashboard boilerplate with Next.js and Shadcn'
+  title: 'EIS Dinkes Brebes',
+  description: 'Executive Information System Dinas Kesehatan Kabupaten Brebes',
+  robots: {
+    index: false,
+    follow: false,
+    nocache: true,
+    googleBot: {
+      index: false,
+      follow: false,
+      noimageindex: true
+    }
+  },
+  manifest: '/manifest.json',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'EIS Dinkes'
+  },
+  formatDetection: {
+    telephone: false
+  },
+  other: {
+    'X-Robots-Tag': 'noindex, nofollow, noarchive, nosnippet'
+  }
 };
 
 export const viewport: Viewport = {
@@ -36,6 +59,14 @@ export default async function RootLayout({
   return (
     <html lang='en' suppressHydrationWarning data-theme={themeToApply}>
       <head>
+        <link rel='manifest' href='/manifest.json' />
+        <meta name='robots' content='noindex, nofollow, noarchive, nosnippet' />
+        <meta name='googlebot' content='noindex, nofollow, noimageindex' />
+        <meta name='bingbot' content='noindex, nofollow' />
+        <meta name='apple-mobile-web-app-capable' content='yes' />
+        <meta name='apple-mobile-web-app-status-bar-style' content='default' />
+        <meta name='apple-mobile-web-app-title' content='EIS Dinkes' />
+        <link rel='apple-touch-icon' href='/logo.png' />
         <script
           dangerouslySetInnerHTML={{
             __html: `
@@ -43,6 +74,16 @@ export default async function RootLayout({
                 // Set meta theme color
                 if (localStorage.theme === 'dark' || ((!('theme' in localStorage) || localStorage.theme === 'system') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
                   document.querySelector('meta[name="theme-color"]')?.setAttribute('content', '${META_THEME_COLORS.dark}')
+                }
+                // Register Service Worker
+                if ('serviceWorker' in navigator) {
+                  window.addEventListener('load', function() {
+                    navigator.serviceWorker.register('/sw.js').then(function(registration) {
+                      console.log('SW registered: ', registration);
+                    }).catch(function(error) {
+                      console.log('SW registration failed: ', error);
+                    });
+                  });
                 }
               } catch (_) {}
             `

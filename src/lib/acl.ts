@@ -159,7 +159,7 @@ export async function logAudit(
       action,
       resource,
       resourceId,
-      details: details ?? undefined,
+      details: details ? JSON.parse(JSON.stringify(details)) : undefined,
       ipAddress:
         req?.headers.get('x-forwarded-for') ??
         req?.headers.get('x-real-ip') ??

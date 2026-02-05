@@ -41,12 +41,20 @@ export default function AppSidebar() {
           <SidebarMenuItem>
             <SidebarMenuButton size='lg' asChild>
               <Link href='/dashboard/overview'>
-                <div className='bg-primary text-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg'>
-                  <Icons.logo className='size-4' />
+                <div className='flex aspect-square size-8 items-center justify-center overflow-hidden rounded-lg'>
+                  <img
+                    src='/logo.png'
+                    alt='Logo'
+                    className='size-8 object-contain'
+                  />
                 </div>
                 <div className='grid flex-1 text-left text-sm leading-tight'>
-                  <span className='truncate font-semibold'>Dashboard</span>
-                  <span className='truncate text-xs'>Analytics</span>
+                  <span className='truncate font-semibold'>
+                    {process.env.NEXT_PUBLIC_DINKES_NAME}
+                  </span>
+                  <span className='truncate text-xs'>
+                    Executive Information System
+                  </span>
                 </div>
               </Link>
             </SidebarMenuButton>
