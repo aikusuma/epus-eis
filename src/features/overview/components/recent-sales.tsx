@@ -17,9 +17,12 @@ import {
   IconLungs,
   IconDroplet
 } from '@tabler/icons-react';
+import type { Icon } from '@tabler/icons-react';
 import { useOverviewData } from '@/hooks/use-eis-data';
 
-const iconMap: Record<string, any> = {
+type IconComponent = typeof Icon;
+
+const iconMap: Record<string, IconComponent> = {
   J: IconLungs, // Respiratory
   I: IconHeartbeat, // Cardiovascular
   E: IconDroplet, // Endocrine
@@ -35,7 +38,7 @@ const kategoriMap: Record<string, string> = {
   R: 'umum'
 };
 
-function getIconForCode(code: string) {
+function getIconForCode(code: string): IconComponent {
   const firstChar = code?.charAt(0) || '';
   return iconMap[firstChar] || IconVirus;
 }
@@ -45,10 +48,20 @@ function getKategoriForCode(code: string) {
   return kategoriMap[firstChar] || 'umum';
 }
 
+interface PenyakitItem {
+  code: string;
+  name: string;
+  icon: IconComponent;
+  count: number;
+  trend: string;
+  percent: string;
+  kategori: string;
+}
+
 export function RecentSales() {
   const { data, isLoading } = useOverviewData();
 
-  const topPenyakit = useMemo(() => {
+  const topPenyakit: PenyakitItem[] = useMemo(() => {
     if (!data?.topPenyakit) return [];
 
     return data.topPenyakit.slice(0, 5).map((p: any) => ({
