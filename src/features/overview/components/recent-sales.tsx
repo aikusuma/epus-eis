@@ -17,10 +17,9 @@ import {
   IconLungs,
   IconDroplet
 } from '@tabler/icons-react';
-import type { Icon } from '@tabler/icons-react';
 import { useOverviewData } from '@/hooks/use-eis-data';
 
-type IconComponent = typeof Icon;
+type IconComponent = typeof IconVirus;
 
 const iconMap: Record<string, IconComponent> = {
   J: IconLungs, // Respiratory
