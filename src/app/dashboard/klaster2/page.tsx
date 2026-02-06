@@ -379,18 +379,18 @@ export default function Klaster2Page() {
                   </Card>
                 </div>
 
-                <div className='grid gap-4 md:grid-cols-2'>
-                  <Card>
+                <div className='grid gap-6 md:grid-cols-2'>
+                  <Card className='h-full'>
                     <CardHeader>
                       <CardTitle>Capaian Imunisasi</CardTitle>
                       <CardDescription>
                         Sasaran vs Capaian per jenis
                       </CardDescription>
                     </CardHeader>
-                    <CardContent>
+                    <CardContent className='overflow-hidden px-2 pt-2 sm:px-4 sm:pt-4 sm:pb-6'>
                       <ChartContainer
                         config={chartConfig}
-                        className='h-[350px]'
+                        className='h-[360px]'
                       >
                         <BarChart data={imunisasiData} layout='vertical'>
                           <CartesianGrid strokeDasharray='3 3' />
@@ -417,17 +417,17 @@ export default function Klaster2Page() {
                     </CardContent>
                   </Card>
 
-                  <Card>
+                  <Card className='h-full'>
                     <CardHeader>
                       <CardTitle>Distribusi Capaian Imunisasi</CardTitle>
                       <CardDescription>
                         Proporsi per jenis imunisasi
                       </CardDescription>
                     </CardHeader>
-                    <CardContent>
+                    <CardContent className='overflow-hidden px-2 pt-2 sm:px-4 sm:pt-4 sm:pb-6'>
                       <ChartContainer
                         config={chartConfig}
-                        className='h-[350px]'
+                        className='h-[360px]'
                       >
                         <PieChart>
                           <Pie

@@ -63,6 +63,26 @@ async function main() {
         description: 'Akses data agregat dan export laporan',
         level: 5
       }
+    }),
+    prisma.role.upsert({
+      where: { code: 'keuangan' },
+      update: {},
+      create: {
+        code: 'keuangan',
+        name: 'Keuangan',
+        description: 'Fokus keuangan & klaim, akses terbatas',
+        level: 4
+      }
+    }),
+    prisma.role.upsert({
+      where: { code: 'staf_view' },
+      update: {},
+      create: {
+        code: 'staf_view',
+        name: 'Staf Viewer',
+        description: 'Hanya bisa lihat dashboard & ringkasan',
+        level: 6
+      }
     })
   ]);
 
@@ -109,6 +129,24 @@ async function main() {
         module: 'dashboard'
       }
     }),
+    prisma.permission.upsert({
+      where: { code: 'view_finance' },
+      update: {},
+      create: {
+        code: 'view_finance',
+        name: 'Lihat Data Keuangan',
+        module: 'keuangan'
+      }
+    }),
+    prisma.permission.upsert({
+      where: { code: 'view_obat' },
+      update: {},
+      create: {
+        code: 'view_obat',
+        name: 'Lihat Stok/Obat',
+        module: 'logistik'
+      }
+    }),
     // Reports
     prisma.permission.upsert({
       where: { code: 'export_reports' },
@@ -146,6 +184,8 @@ async function main() {
   const kabidRole = roles.find((r) => r.code === 'kabid')!;
   const kepalaPuskesmasRole = roles.find((r) => r.code === 'kepala_puskesmas')!;
   const stafRole = roles.find((r) => r.code === 'staf')!;
+  const keuanganRole = roles.find((r) => r.code === 'keuangan')!;
+  const stafViewRole = roles.find((r) => r.code === 'staf_view')!;
 
   // Kepala Dinkes - All permissions
   for (const perm of permissions) {
@@ -161,9 +201,13 @@ async function main() {
     });
   }
 
+  const allExceptManageSettings = permissions.filter(
+    (p) => p.code !== 'manage_settings'
+  );
+
   // Kabid - All except manage_users
-  for (const perm of permissions.filter(
-    (p) => p.code !== 'manage_users' && p.code !== 'manage_settings'
+  for (const perm of allExceptManageSettings.filter(
+    (p) => p.code !== 'manage_users'
   )) {
     await prisma.rolePermission.upsert({
       where: {
@@ -209,6 +253,45 @@ async function main() {
       },
       update: {},
       create: { roleId: stafRole.id, permissionId: perm.id }
+    });
+  }
+
+  // Keuangan - finance focused
+  const financePerms = permissions.filter((p) =>
+    [
+      'view_dashboard',
+      'view_aggregated_data',
+      'view_finance',
+      'export_reports'
+    ].includes(p.code)
+  );
+  for (const perm of financePerms) {
+    await prisma.rolePermission.upsert({
+      where: {
+        roleId_permissionId: {
+          roleId: keuanganRole.id,
+          permissionId: perm.id
+        }
+      },
+      update: {},
+      create: { roleId: keuanganRole.id, permissionId: perm.id }
+    });
+  }
+
+  // Staf Viewer - minimal
+  const viewerPerms = permissions.filter((p) =>
+    ['view_dashboard', 'view_aggregated_data'].includes(p.code)
+  );
+  for (const perm of viewerPerms) {
+    await prisma.rolePermission.upsert({
+      where: {
+        roleId_permissionId: {
+          roleId: stafViewRole.id,
+          permissionId: perm.id
+        }
+      },
+      update: {},
+      create: { roleId: stafViewRole.id, permissionId: perm.id }
     });
   }
 

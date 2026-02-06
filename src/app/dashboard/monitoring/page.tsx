@@ -664,7 +664,7 @@ export default function MonitoringPage() {
                 <CardContent>
                   <ChartContainer
                     config={diagnosaConfig}
-                    className='h-[400px] w-full'
+                    className='h-[460px] w-full'
                   >
                     <BarChart data={top10Diagnosa} layout='vertical'>
                       <CartesianGrid strokeDasharray='3 3' />
@@ -741,7 +741,7 @@ export default function MonitoringPage() {
                 <CardContent>
                   <ChartContainer
                     config={keluhanConfig}
-                    className='h-[400px] w-full'
+                    className='h-[460px] w-full'
                   >
                     <BarChart data={top10Keluhan} layout='vertical'>
                       <CartesianGrid strokeDasharray='3 3' />
@@ -811,7 +811,7 @@ export default function MonitoringPage() {
                 <CardContent>
                   <ChartContainer
                     config={obatConfig}
-                    className='h-[400px] w-full'
+                    className='h-[460px] w-full'
                   >
                     <BarChart data={top10Obat} layout='vertical'>
                       <CartesianGrid strokeDasharray='3 3' />

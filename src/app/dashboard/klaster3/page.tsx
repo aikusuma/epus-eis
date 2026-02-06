@@ -217,16 +217,16 @@ export default function Klaster3Page() {
                   </Card>
                 </div>
 
-                <div className='grid gap-4 md:grid-cols-2'>
-                  <Card>
+                <div className='grid gap-6 md:grid-cols-2'>
+                  <Card className='h-full'>
                     <CardHeader>
                       <CardTitle>Capaian Deteksi Dini per Jenis</CardTitle>
                       <CardDescription>Positif vs Negatif</CardDescription>
                     </CardHeader>
-                    <CardContent>
+                    <CardContent className='overflow-hidden px-2 pt-2 sm:px-4 sm:pt-4 sm:pb-6'>
                       <ChartContainer
                         config={chartConfig}
-                        className='h-[350px]'
+                        className='h-[360px]'
                       >
                         <BarChart data={deteksiDiniData} layout='vertical'>
                           <CartesianGrid strokeDasharray='3 3' />
@@ -253,7 +253,7 @@ export default function Klaster3Page() {
                     </CardContent>
                   </Card>
 
-                  <Card>
+                  <Card className='h-full'>
                     <CardHeader>
                       <CardTitle>Distribusi Pasien Deteksi</CardTitle>
                       <CardDescription>Per jenis pemeriksaan</CardDescription>

@@ -2,9 +2,10 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
+import { IconLoader2 } from '@tabler/icons-react';
+
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import {
   Card,
   CardContent,
@@ -12,9 +13,10 @@ import {
   CardHeader,
   CardTitle
 } from '@/components/ui/card';
-import { IconLoader2, IconBuildingHospital } from '@tabler/icons-react';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { DottedGlowBackground } from '@/components/ui/dotted-glow-background';
 
-// Branding from environment variables
 const APP_NAME = process.env.NEXT_PUBLIC_APP_NAME || 'EIS Dinkes';
 const DINKES_NAME = process.env.NEXT_PUBLIC_DINKES_NAME || 'Dinas Kesehatan';
 const EMAIL_DOMAIN = process.env.NEXT_PUBLIC_EMAIL_DOMAIN || 'dinkes.go.id';
@@ -41,15 +43,13 @@ export default function LoginPage() {
       });
 
       const data = await res.json();
-
       if (!res.ok) {
         setError(data.error || 'Terjadi kesalahan');
         return;
       }
 
-      // Redirect to dashboard
       router.push('/dashboard');
-    } catch {
+    } catch (err) {
       setError('Gagal terhubung ke server');
     } finally {
       setIsLoading(false);
@@ -57,30 +57,87 @@ export default function LoginPage() {
   };
 
   return (
-    <div className='grid min-h-svh lg:grid-cols-2'>
-      {/* Left Side - Form */}
-      <div className='flex flex-col gap-4 p-6 md:p-10'>
-        <div className='flex flex-1 items-center justify-center'>
-          <div className='w-full max-w-xs'>
-            <form onSubmit={handleSubmit} className='flex flex-col gap-6'>
-              <div className='flex flex-col items-center gap-2 text-center'>
-                <div className='bg-primary text-primary-foreground mb-2 flex size-12 items-center justify-center rounded-xl'>
-                  <IconBuildingHospital className='size-6' />
-                </div>
-                <h1 className='text-2xl font-bold'>{APP_NAME}</h1>
-                <p className='text-muted-foreground text-sm text-balance'>
-                  Masukkan email untuk mengakses Executive Information System
-                </p>
-              </div>
+    <div className='relative grid min-h-screen lg:grid-cols-2'>
+      {/* Left panel */}
+      <div className='relative hidden overflow-hidden border-r bg-zinc-950 text-zinc-50 lg:flex lg:flex-col lg:p-10'>
+        <div
+          className='absolute inset-0 opacity-50'
+          style={{
+            backgroundImage:
+              'radial-gradient(circle at 20% 20%, rgba(255,255,255,0.1), transparent 25%), radial-gradient(circle at 80% 0%, rgba(255,255,255,0.08), transparent 25%), radial-gradient(circle at 60% 70%, rgba(255,255,255,0.06), transparent 30%)'
+          }}
+        />
+        <div
+          className='absolute inset-0 opacity-15'
+          style={{
+            backgroundImage:
+              'linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px)',
+            backgroundSize: '48px 48px'
+          }}
+        />
+        <DottedGlowBackground
+          className='pointer-events-none absolute inset-0 opacity-55 mix-blend-screen'
+          gap={12}
+          radius={2}
+          speedMin={0.35}
+          speedMax={1.2}
+          speedScale={1}
+          backgroundOpacity={0}
+          colorLightVar='--color-neutral-500'
+          glowColorLightVar='--color-neutral-600'
+          colorDarkVar='--color-neutral-500'
+          glowColorDarkVar='--color-sky-800'
+        />
 
+        <div className='relative z-10 flex flex-1 items-center justify-center'>
+          <div className='flex flex-col items-center space-y-2 text-center'>
+            <h3 className='text-4xl font-semibold text-white'>
+              Executive Information System
+            </h3>
+            <p className='max-w-sm text-sm leading-relaxed text-white/80'>
+              Data e-Puskesmas teringegrasi dalam satu dashboard. Memudahkan
+              Dinas Kesehatan bisa melihat tren real-time dalam satu layar.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Right panel */}
+      <div className='flex h-full items-center justify-center p-6 lg:p-10'>
+        <div className='w-full max-w-md space-y-6 text-center'>
+          <div className='space-y-2'>
+            <div className='mx-auto flex h-14 w-14 items-center justify-center rounded-xl border border-zinc-200 bg-white shadow-sm'>
+              <Image
+                src='/logo.png'
+                alt={`${APP_NAME} logo`}
+                width={40}
+                height={40}
+              />
+            </div>
+            <h1 className='text-2xl font-bold tracking-tight'>
+              Masuk ke {APP_NAME}
+            </h1>
+            <p className='text-muted-foreground text-sm'>
+              Gunakan akun dinas untuk mengakses dashboard.
+            </p>
+          </div>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Autentikasi</CardTitle>
+              <CardDescription>
+                Masuk dengan kredensial internal Dinkes.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
               {error && (
-                <div className='text-destructive bg-destructive/10 rounded-md p-3 text-center text-sm'>
+                <div className='text-destructive border-destructive/40 bg-destructive/10 mb-4 rounded-md border p-3 text-sm'>
                   {error}
                 </div>
               )}
 
-              <div className='grid gap-6'>
-                <div className='grid gap-3'>
+              <form onSubmit={handleSubmit} className='space-y-4 text-left'>
+                <div className='space-y-2'>
                   <Label htmlFor='email'>Email</Label>
                   <Input
                     id='email'
@@ -92,10 +149,9 @@ export default function LoginPage() {
                     disabled={isLoading}
                   />
                 </div>
-                <div className='grid gap-3'>
-                  <div className='flex items-center'>
-                    <Label htmlFor='password'>Password</Label>
-                  </div>
+
+                <div className='space-y-2'>
+                  <Label htmlFor='password'>Password</Label>
                   <Input
                     id='password'
                     type='password'
@@ -106,69 +162,24 @@ export default function LoginPage() {
                     disabled={isLoading}
                   />
                 </div>
+
                 <Button type='submit' className='w-full' disabled={isLoading}>
                   {isLoading && (
                     <IconLoader2 className='mr-2 size-4 animate-spin' />
                   )}
                   Masuk
                 </Button>
+              </form>
+
+              <div className='text-muted-foreground mt-4 space-y-2 text-xs'>
+                <div>
+                  Demo: <span className='font-medium'>{DEMO_EMAIL}</span> /{' '}
+                  <span className='font-medium'>{DEMO_PASSWORD}</span>
+                </div>
+                <div className='text-[11px]'>
+                  Hubungi admin {DINKES_NAME} jika lupa kredensial.
+                </div>
               </div>
-              <div className='text-muted-foreground *:[a]:hover:text-primary text-center text-xs text-balance *:[a]:underline *:[a]:underline-offset-4'>
-                {DINKES_NAME}
-              </div>
-            </form>
-          </div>
-        </div>
-      </div>
-
-      {/* Right Side - Animated Background */}
-      <div className='bg-primary relative hidden overflow-hidden lg:block'>
-        {/* Animated gradient background */}
-        <div className='from-primary via-primary to-primary/80 absolute inset-0 bg-gradient-to-br' />
-
-        {/* Animated circles */}
-        <div className='absolute inset-0'>
-          <div className='animate-blob absolute -top-20 -left-20 size-72 rounded-full bg-white/10 mix-blend-overlay blur-xl' />
-          <div className='animate-blob animation-delay-2000 absolute top-1/3 -right-20 size-72 rounded-full bg-white/10 mix-blend-overlay blur-xl' />
-          <div className='animate-blob animation-delay-4000 absolute -bottom-20 left-1/3 size-72 rounded-full bg-white/10 mix-blend-overlay blur-xl' />
-        </div>
-
-        {/* Grid pattern overlay */}
-        <div
-          className='absolute inset-0 opacity-20'
-          style={{
-            backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.15'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`
-          }}
-        />
-
-        {/* Content */}
-        <div className='absolute inset-0 flex flex-col items-center justify-center p-10'>
-          <div className='mb-8 flex size-24 items-center justify-center rounded-full bg-white/20 backdrop-blur-sm'>
-            <IconBuildingHospital className='size-12 text-white' />
-          </div>
-          <h2 className='mb-4 text-center text-3xl font-bold text-white'>
-            Executive Information System
-          </h2>
-          <p className='max-w-md text-center text-lg text-white/80'>
-            Sistem Informasi Eksekutif untuk {DINKES_NAME}. Mengintegrasikan
-            data dari e-Puskesmas untuk pengambilan keputusan strategis.
-          </p>
-
-          {/* Demo credentials card */}
-          <Card className='mt-8 border-white/20 bg-white/10 backdrop-blur-md'>
-            <CardHeader className='pb-2'>
-              <CardTitle className='text-sm text-white'>Demo Login</CardTitle>
-              <CardDescription className='text-xs text-white/70'>
-                Gunakan kredensial berikut untuk demo
-              </CardDescription>
-            </CardHeader>
-            <CardContent className='text-sm text-white/90'>
-              <p>
-                <strong>Email:</strong> {DEMO_EMAIL}
-              </p>
-              <p>
-                <strong>Password:</strong> {DEMO_PASSWORD}
-              </p>
             </CardContent>
           </Card>
         </div>

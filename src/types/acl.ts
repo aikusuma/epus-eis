@@ -7,7 +7,9 @@ export const ROLE_CODES = {
   KABID: 'kabid',
   SUBKOR: 'subkor',
   KEPALA_PUSKESMAS: 'kepala_puskesmas',
-  STAF: 'staf'
+  STAF: 'staf',
+  KEUANGAN: 'keuangan',
+  STAF_VIEW: 'staf_view'
 } as const;
 
 export type RoleCode = (typeof ROLE_CODES)[keyof typeof ROLE_CODES];
@@ -18,6 +20,8 @@ export const PERMISSIONS = {
   VIEW_ALL_PUSKESMAS: 'view_all_puskesmas',
   VIEW_OWN_PUSKESMAS: 'view_own_puskesmas',
   VIEW_AGGREGATED_DATA: 'view_aggregated_data',
+  VIEW_FINANCE: 'view_finance',
+  VIEW_OBAT: 'view_obat',
   EXPORT_REPORTS: 'export_reports',
   VIEW_REPORTS: 'view_reports',
   SYNC_DATA: 'sync_data',
@@ -49,7 +53,9 @@ export const ROLE_HIERARCHY: Record<RoleCode, number> = {
   [ROLE_CODES.KABID]: 2,
   [ROLE_CODES.SUBKOR]: 3,
   [ROLE_CODES.KEPALA_PUSKESMAS]: 4,
-  [ROLE_CODES.STAF]: 5
+  [ROLE_CODES.KEUANGAN]: 4,
+  [ROLE_CODES.STAF]: 5,
+  [ROLE_CODES.STAF_VIEW]: 6
 };
 
 // Roles that can see all puskesmas

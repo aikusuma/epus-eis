@@ -88,6 +88,12 @@ export const navItems: NavItem[] = [
         url: '/dashboard/profile',
         icon: 'profile',
         shortcut: ['a', 'p']
+      },
+      {
+        title: 'Keluar',
+        url: '/logout',
+        icon: 'logout',
+        shortcut: ['k', 'l']
       }
     ]
   }

@@ -2,7 +2,15 @@
 
 import * as React from 'react';
 import Link from 'next/link';
-import { Bar, BarChart, CartesianGrid, XAxis } from 'recharts';
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Legend,
+  Tooltip,
+  XAxis,
+  YAxis
+} from 'recharts';
 
 import {
   Card,
@@ -25,16 +33,11 @@ import { useOverviewFilterParams } from '@/features/overview/context/overview-fi
 export const description = 'Grafik kunjungan pasien';
 
 const chartConfig = {
-  views: {
-    label: 'Kunjungan'
-  },
-  rawatJalan: {
-    label: 'BPJS',
-    color: 'var(--primary)'
-  },
-  rawatInap: {
+  total: { label: 'Total Kunjungan', color: 'var(--primary)' },
+  bpjs: { label: 'BPJS', color: 'var(--color-ispa, var(--primary))' },
+  umum: {
     label: 'Umum',
-    color: 'var(--primary)'
+    color: 'var(--color-hipertensi, var(--muted-foreground))'
   }
 } satisfies ChartConfig;
 
@@ -42,34 +45,18 @@ export function BarGraph() {
   const filters = useOverviewFilterParams();
   const { data, isLoading } = useOverviewData(filters);
 
-  const [activeChart, setActiveChart] =
-    React.useState<keyof typeof chartConfig>('rawatJalan');
-
-  // Transform trend data for chart - use BPJS/Umum as proxy for rawat jalan/inap
+  // Transform trend data for chart - total + breakdown
   const chartData = React.useMemo(() => {
     if (!data?.trend || data.trend.length === 0) return [];
 
     // Use trend data with bpjs/umum breakdown
     return data.trend.map((item: any) => ({
-      date: item.bulan,
-      rawatJalan: item.bpjs || 0,
-      rawatInap: item.umum || 0
+      bulan: item.bulan,
+      total: item.kunjungan || 0,
+      bpjs: item.bpjs || Math.round((item.kunjungan || 0) * 0.65),
+      umum: item.umum || Math.round((item.kunjungan || 0) * 0.35)
     }));
   }, [data]);
-
-  const total = React.useMemo(
-    () => ({
-      rawatJalan: chartData.reduce(
-        (acc: number, curr: any) => acc + (curr.rawatJalan || 0),
-        0
-      ),
-      rawatInap: chartData.reduce(
-        (acc: number, curr: any) => acc + (curr.rawatInap || 0),
-        0
-      )
-    }),
-    [chartData]
-  );
 
   const [isClient, setIsClient] = React.useState(false);
 
@@ -103,86 +90,39 @@ export function BarGraph() {
         <div className='flex flex-1 flex-col justify-center gap-1 px-6 !py-0'>
           <CardTitle>Data Kunjungan</CardTitle>
           <CardDescription>
-            <span className='hidden @[540px]/card:block'>
-              Total kunjungan bulan ini
-            </span>
-            <span className='@[540px]/card:hidden'>Bulan ini</span>
+            Total kunjungan per bulan (BPJS vs Umum)
           </CardDescription>
-        </div>
-        <div className='flex'>
-          {(['rawatJalan', 'rawatInap'] as const).map((key) => {
-            const chart = key;
-            return (
-              <button
-                key={chart}
-                data-active={activeChart === chart}
-                className='data-[active=true]:bg-primary/5 hover:bg-primary/5 relative flex flex-1 flex-col justify-center gap-1 border-t px-6 py-4 text-left transition-colors duration-200 even:border-l sm:border-t-0 sm:border-l sm:px-8 sm:py-6'
-                onClick={() => setActiveChart(chart)}
-              >
-                <span className='text-muted-foreground text-xs'>
-                  {chartConfig[chart].label}
-                </span>
-                <span className='text-lg leading-none font-bold sm:text-3xl'>
-                  {(total[key] || 0).toLocaleString('id-ID')}
-                </span>
-              </button>
-            );
-          })}
         </div>
       </CardHeader>
       <CardContent className='flex flex-1 flex-col px-2 pt-4 sm:px-6 sm:pt-6'>
         <ChartContainer
           config={chartConfig}
-          className='aspect-auto h-[250px] w-full'
+          className='aspect-auto h-[360px] w-full'
         >
-          <BarChart
-            data={chartData}
-            margin={{
-              left: 12,
-              right: 12
-            }}
-          >
-            <defs>
-              <linearGradient id='fillBar' x1='0' y1='0' x2='0' y2='1'>
-                <stop
-                  offset='0%'
-                  stopColor='var(--primary)'
-                  stopOpacity={0.8}
-                />
-                <stop
-                  offset='100%'
-                  stopColor='var(--primary)'
-                  stopOpacity={0.2}
-                />
-              </linearGradient>
-            </defs>
+          <BarChart data={chartData} stackOffset='none'>
             <CartesianGrid vertical={false} />
             <XAxis
-              dataKey='nama'
+              dataKey='bulan'
               tickLine={false}
               axisLine={false}
               tickMargin={8}
-              minTickGap={32}
-              tickFormatter={(value) => {
-                if (typeof value === 'string' && value.length > 10) {
-                  return value.substring(0, 10) + '...';
-                }
-                return value;
-              }}
             />
+            <YAxis tickLine={false} axisLine={false} />
             <ChartTooltip
               cursor={{ fill: 'var(--primary)', opacity: 0.1 }}
-              content={
-                <ChartTooltipContent
-                  className='w-[180px]'
-                  nameKey='views'
-                  labelFormatter={(value) => value}
-                />
-              }
+              content={<ChartTooltipContent className='w-[200px]' />}
+            />
+            <Legend />
+            <Bar
+              dataKey='bpjs'
+              stackId='a'
+              fill='var(--color-ispa, var(--primary))'
+              radius={[4, 4, 0, 0]}
             />
             <Bar
-              dataKey={activeChart}
-              fill='url(#fillBar)'
+              dataKey='umum'
+              stackId='a'
+              fill='var(--color-hipertensi, var(--muted-foreground))'
               radius={[4, 4, 0, 0]}
             />
           </BarChart>

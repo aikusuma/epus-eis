@@ -3,7 +3,7 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { IconTrendingUp } from '@tabler/icons-react';
-import { Area, AreaChart, CartesianGrid, XAxis } from 'recharts';
+import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from 'recharts';
 
 import {
   Card,
@@ -24,41 +24,23 @@ import { Button } from '@/components/ui/button';
 import { useOverviewData } from '@/hooks/use-eis-data';
 import { useOverviewFilterParams } from '@/features/overview/context/overview-filter-context';
 
-// Note: This chart uses monthly trend data
-// Currently using klaster1 data which has disease trends
-
 const chartConfig = {
-  kasus: {
-    label: 'Kasus'
-  },
-  ispa: {
-    label: 'ISPA',
-    color: 'var(--primary)'
-  },
-  hipertensi: {
-    label: 'Hipertensi',
-    color: 'var(--primary)'
-  }
+  jumlah: { label: 'Jumlah Kasus' },
+  kasus: { label: 'Kasus', color: 'var(--primary)' }
 } satisfies ChartConfig;
 
 export function AreaGraph() {
   const filters = useOverviewFilterParams();
   const { data, isLoading } = useOverviewData(filters);
 
-  // Transform data for chart - use trend data from overview
+  // Use top 8 penyakit as bar chart (more logical than fake trends)
   const chartData = React.useMemo(() => {
-    if (!data?.trend || data.trend.length === 0) {
-      // Return empty placeholder data
-      return [{ month: 'Jan', ispa: 0, hipertensi: 0 }];
+    if (!data?.topPenyakit || data.topPenyakit.length === 0) {
+      return [];
     }
-
-    // Use trend data to show BPJS vs Umum as proxy for disease categories
-    // In production, this would come from a disease trend API
-    return data.trend.map((t: any) => ({
-      month: t.bulan,
-      ispa: Math.round(t.kunjungan * 0.15), // Approximate ISPA as 15% of visits
-      hipertensi: Math.round(t.kunjungan * 0.12) // Approximate Hipertensi as 12%
-    }));
+    return data.topPenyakit
+      .slice(0, 8)
+      .map((p: any) => ({ nama: p.nama, jumlah: p.jumlah }));
   }, [data]);
 
   if (isLoading) {
@@ -81,87 +63,44 @@ export function AreaGraph() {
     <Card className='@container/card flex h-full w-full flex-col'>
       <CardHeader>
         <CardTitle>Tren Penyakit Utama</CardTitle>
-        <CardDescription>
-          Perbandingan kasus ISPA dan Hipertensi 12 bulan terakhir
-        </CardDescription>
+        <CardDescription>8 penyakit terbanyak bulan ini</CardDescription>
       </CardHeader>
       <CardContent className='px-2 pt-4 sm:px-6 sm:pt-6'>
         <ChartContainer
           config={chartConfig}
-          className='aspect-auto h-[250px] w-full'
+          className='aspect-auto h-[360px] w-full'
         >
-          <AreaChart
+          <BarChart
             data={chartData}
-            margin={{
-              left: 12,
-              right: 12
-            }}
+            layout='vertical'
+            margin={{ left: 12, right: 12 }}
           >
-            <defs>
-              <linearGradient id='fillIspa' x1='0' y1='0' x2='0' y2='1'>
-                <stop
-                  offset='5%'
-                  stopColor='var(--color-ispa)'
-                  stopOpacity={1.0}
-                />
-                <stop
-                  offset='95%'
-                  stopColor='var(--color-ispa)'
-                  stopOpacity={0.1}
-                />
-              </linearGradient>
-              <linearGradient id='fillHipertensi' x1='0' y1='0' x2='0' y2='1'>
-                <stop
-                  offset='5%'
-                  stopColor='var(--color-hipertensi)'
-                  stopOpacity={0.8}
-                />
-                <stop
-                  offset='95%'
-                  stopColor='var(--color-hipertensi)'
-                  stopOpacity={0.1}
-                />
-              </linearGradient>
-            </defs>
-            <CartesianGrid vertical={false} />
-            <XAxis
-              dataKey='month'
+            <CartesianGrid strokeDasharray='3 3' />
+            <XAxis type='number' />
+            <YAxis
+              dataKey='nama'
+              type='category'
+              width={140}
               tickLine={false}
               axisLine={false}
-              tickMargin={8}
-              minTickGap={32}
-              tickFormatter={(value) => value}
             />
             <ChartTooltip
-              cursor={false}
-              content={<ChartTooltipContent indicator='dot' />}
+              cursor={{ fill: 'var(--primary)', opacity: 0.08 }}
+              content={<ChartTooltipContent />}
             />
-            <Area
-              dataKey='hipertensi'
-              type='natural'
-              fill='url(#fillHipertensi)'
-              stroke='var(--color-hipertensi)'
-              stackId='a'
-            />
-            <Area
-              dataKey='ispa'
-              type='natural'
-              fill='url(#fillIspa)'
-              stroke='var(--color-ispa)'
-              stackId='a'
-            />
-          </AreaChart>
+            <Bar dataKey='jumlah' fill='var(--primary)' radius={6} />
+          </BarChart>
         </ChartContainer>
       </CardContent>
       <CardFooter className='flex-col gap-2'>
         <div className='flex w-full items-start gap-2 text-sm'>
           <div className='grid gap-2'>
             <div className='flex items-center gap-2 leading-none font-medium'>
-              Hipertensi naik 8.3% bulan ini{' '}
+              8 penyakit teratas dikonversi ke laporan{' '}
               <IconTrendingUp className='h-4 w-4' />
             </div>
             <div className='text-muted-foreground flex items-center gap-2 leading-none'>
-              Feb 2024 - Jan 2025
+              Periode: bulan berjalan
             </div>
           </div>
         </div>

@@ -10,18 +10,20 @@ export async function POST(req: NextRequest) {
     if (payload) {
       const user = createUserContext(payload);
 
-      // Log audit
-      await db.auditLog.create({
-        data: {
-          userId: user.userId,
-          action: 'logout',
-          ipAddress:
-            req.headers.get('x-forwarded-for') ??
-            req.headers.get('x-real-ip') ??
-            undefined,
-          userAgent: req.headers.get('user-agent') ?? undefined
-        }
-      });
+      // Fire-and-forget audit to avoid blocking logout
+      db.auditLog
+        .create({
+          data: {
+            userId: user.userId,
+            action: 'logout',
+            ipAddress:
+              req.headers.get('x-forwarded-for') ??
+              req.headers.get('x-real-ip') ??
+              undefined,
+            userAgent: req.headers.get('user-agent') ?? undefined
+          }
+        })
+        .catch((err) => console.error('Audit log logout error', err));
     }
 
     // Clear cookie

@@ -32,6 +32,8 @@ export async function GET(req: NextRequest) {
         email: user.email,
         nama: user.nama,
         jabatan: user.jabatan,
+        telepon: user.telepon,
+        nip: user.nip,
         role: user.role.name,
         roleCode: user.role.code,
         puskesmas: user.puskesmas

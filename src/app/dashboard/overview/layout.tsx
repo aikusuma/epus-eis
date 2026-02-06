@@ -20,7 +20,7 @@ export default function OverViewLayout({
   return (
     <OverviewFilterProvider>
       <PageContainer>
-        <div className='flex flex-1 flex-col space-y-2'>
+        <div className='flex flex-1 flex-col space-y-4'>
           <OverviewFilter />
 
           <div className='flex items-center justify-between space-y-2'>
@@ -31,7 +31,7 @@ export default function OverViewLayout({
 
           <SummaryCards />
 
-          <div className='grid grid-cols-1 items-stretch gap-4 md:grid-cols-2 lg:grid-cols-7'>
+          <div className='grid grid-cols-1 items-stretch gap-8 md:grid-cols-2 lg:grid-cols-7'>
             <div className='col-span-4 flex'>{bar_stats}</div>
             <div className='col-span-4 flex md:col-span-3'>
               {/* Top 10 Penyakit */}
