@@ -39,13 +39,13 @@ export function NavUser({
   const { isMobile } = useSidebar();
   const router = useRouter();
 
-  const handleLogout = async () => {
-    try {
-      await fetch('/api/auth/logout', { method: 'POST' });
-    } finally {
-      router.push('/login');
-      router.refresh();
-    }
+  const handleLogout = () => {
+    // fire-and-forget logout; don't block UI
+    fetch('/api/auth/logout', { method: 'POST', keepalive: true }).catch(
+      () => {}
+    );
+    router.push('/login');
+    router.refresh();
   };
 
   return (

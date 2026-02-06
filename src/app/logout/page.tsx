@@ -9,20 +9,12 @@ export default function LogoutPage() {
 
   useEffect(() => {
     const doLogout = async () => {
-      const controller = new AbortController();
-      const timer = setTimeout(() => controller.abort(), 1200); // hard cap
-      try {
-        await fetch('/api/auth/logout', {
-          method: 'POST',
-          signal: controller.signal
-        });
-      } catch (e) {
-        console.error('Logout failed', e);
-      } finally {
-        clearTimeout(timer);
-        router.replace('/login');
-        router.refresh();
-      }
+      // fire-and-forget, don't block navigation
+      fetch('/api/auth/logout', { method: 'POST', keepalive: true }).catch(
+        (e) => console.error('Logout failed', e)
+      );
+      router.replace('/login');
+      router.refresh();
     };
     doLogout();
   }, [router]);

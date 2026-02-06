@@ -21,6 +21,7 @@ import {
 import { Skeleton } from '@/components/ui/skeleton';
 import { useOverviewData } from '@/hooks/use-eis-data';
 import { useOverviewFilterParams } from '@/features/overview/context/overview-filter-context';
+import { CountUp } from '@/components/ui/count-up';
 
 interface SummaryCardsProps {
   filters?: {
@@ -98,7 +99,7 @@ export function SummaryCards({ filters: propFilters }: SummaryCardsProps) {
             Total Kunjungan
           </CardDescription>
           <CardTitle className='text-2xl font-semibold tabular-nums @[250px]/card:text-3xl'>
-            {(summaryData.totalKunjungan || 0).toLocaleString('id-ID')}
+            <CountUp value={summaryData.totalKunjungan || 0} />
           </CardTitle>
           <CardAction>
             <Badge variant='outline'>
@@ -133,7 +134,7 @@ export function SummaryCards({ filters: propFilters }: SummaryCardsProps) {
             Kasus ISPA
           </CardDescription>
           <CardTitle className='text-2xl font-semibold tabular-nums @[250px]/card:text-3xl'>
-            {(summaryData.kasusIspa || 0).toLocaleString('id-ID')}
+            <CountUp value={summaryData.kasusIspa || 0} />
           </CardTitle>
           <CardAction>
             <Badge variant='outline'>
@@ -168,7 +169,7 @@ export function SummaryCards({ filters: propFilters }: SummaryCardsProps) {
             Kasus Hipertensi
           </CardDescription>
           <CardTitle className='text-2xl font-semibold tabular-nums @[250px]/card:text-3xl'>
-            {(summaryData.kasusHipertensi || 0).toLocaleString('id-ID')}
+            <CountUp value={summaryData.kasusHipertensi || 0} />
           </CardTitle>
           <CardAction>
             <Badge variant='outline'>
@@ -202,7 +203,7 @@ export function SummaryCards({ filters: propFilters }: SummaryCardsProps) {
             Puskesmas Aktif
           </CardDescription>
           <CardTitle className='text-2xl font-semibold tabular-nums @[250px]/card:text-3xl'>
-            {summaryData.puskesmasAktif}
+            <CountUp value={summaryData.puskesmasAktif} />
           </CardTitle>
           <CardAction>
             <Badge variant='outline'>

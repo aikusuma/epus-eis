@@ -86,7 +86,7 @@ const baseUserSchema = z.object({
   jabatan: z.string().optional(),
   telepon: z.string().optional(),
   nip: z.string().optional(),
-  isActive: z.boolean().default(true)
+  isActive: z.boolean()
 });
 
 // Create user schema (password wajib)

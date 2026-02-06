@@ -11,6 +11,7 @@ import {
   CardHeader,
   CardTitle
 } from '@/components/ui/card';
+import { CountUp } from '@/components/ui/count-up';
 import { Badge } from '@/components/ui/badge';
 import {
   IconBabyCarriage,
@@ -212,7 +213,7 @@ export default function Klaster2Page() {
                     <CardHeader className='pb-2'>
                       <CardDescription>Kunjungan K1</CardDescription>
                       <CardTitle className='text-3xl'>
-                        {summary.totalK1.toLocaleString()}
+                        <CountUp value={summary.totalK1} />
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
@@ -226,7 +227,7 @@ export default function Klaster2Page() {
                     <CardHeader className='pb-2'>
                       <CardDescription>Kunjungan K4</CardDescription>
                       <CardTitle className='text-3xl'>
-                        {summary.totalK4.toLocaleString()}
+                        <CountUp value={summary.totalK4} />
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
@@ -240,7 +241,7 @@ export default function Klaster2Page() {
                     <CardHeader className='pb-2'>
                       <CardDescription>Total IDL</CardDescription>
                       <CardTitle className='text-3xl'>
-                        {summary.totalIdl.toLocaleString()}
+                        <CountUp value={summary.totalIdl} />
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
@@ -253,7 +254,7 @@ export default function Klaster2Page() {
                     <CardHeader className='pb-2'>
                       <CardDescription>Sasaran Imunisasi</CardDescription>
                       <CardTitle className='text-3xl'>
-                        {summary.sasaranImunisasi.toLocaleString()}
+                        <CountUp value={summary.sasaranImunisasi} />
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
@@ -332,7 +333,7 @@ export default function Klaster2Page() {
                     <CardHeader className='pb-2'>
                       <CardDescription>Sasaran Bayi</CardDescription>
                       <CardTitle className='text-3xl'>
-                        {summary.sasaranImunisasi.toLocaleString()}
+                        <CountUp value={summary.sasaranImunisasi} />
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
@@ -343,7 +344,7 @@ export default function Klaster2Page() {
                     <CardHeader className='pb-2'>
                       <CardDescription>Total IDL</CardDescription>
                       <CardTitle className='text-3xl'>
-                        {summary.totalIdl.toLocaleString()}
+                        <CountUp value={summary.totalIdl} />
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
@@ -357,7 +358,7 @@ export default function Klaster2Page() {
                     <CardHeader className='pb-2'>
                       <CardDescription>Jenis Imunisasi</CardDescription>
                       <CardTitle className='text-3xl'>
-                        {imunisasiData.length}
+                        <CountUp value={imunisasiData.length} />
                       </CardTitle>
                     </CardHeader>
                     <CardContent>

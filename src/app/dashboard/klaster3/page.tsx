@@ -12,6 +12,7 @@ import {
   CardHeader,
   CardTitle
 } from '@/components/ui/card';
+import { CountUp } from '@/components/ui/count-up';
 import { Badge } from '@/components/ui/badge';
 import {
   IconSearch,
@@ -168,7 +169,7 @@ export default function Klaster3Page() {
                     <CardHeader className='pb-2'>
                       <CardDescription>Total Skrining</CardDescription>
                       <CardTitle className='text-3xl'>
-                        {summary.totalPasienDeteksi.toLocaleString()}
+                        <CountUp value={summary.totalPasienDeteksi} />
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
@@ -181,8 +182,8 @@ export default function Klaster3Page() {
                   <Card>
                     <CardHeader className='pb-2'>
                       <CardDescription>Kasus Positif</CardDescription>
-                      <CardTitle className='text-3xl text-red-600'>
-                        {summary.totalPositif.toLocaleString()}
+                      <CardTitle className='text-3xl'>
+                        <CountUp value={summary.totalPositif} />
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
@@ -194,8 +195,8 @@ export default function Klaster3Page() {
                   <Card>
                     <CardHeader className='pb-2'>
                       <CardDescription>Hasil Negatif</CardDescription>
-                      <CardTitle className='text-3xl text-green-600'>
-                        {summary.totalNegatif.toLocaleString()}
+                      <CardTitle className='text-3xl'>
+                        <CountUp value={summary.totalNegatif} />
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
@@ -208,7 +209,7 @@ export default function Klaster3Page() {
                     <CardHeader className='pb-2'>
                       <CardDescription>Jenis Deteksi</CardDescription>
                       <CardTitle className='text-3xl'>
-                        {deteksiDiniData.length}
+                        <CountUp value={deteksiDiniData.length} />
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
@@ -304,7 +305,7 @@ export default function Klaster3Page() {
                     <CardHeader className='pb-2'>
                       <CardDescription>Total Diperiksa</CardDescription>
                       <CardTitle className='text-3xl'>
-                        {summary.totalPasienRisiko.toLocaleString()}
+                        <CountUp value={summary.totalPasienRisiko} />
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
@@ -319,8 +320,8 @@ export default function Klaster3Page() {
                       <CardDescription>
                         Faktor Risiko Terdeteksi
                       </CardDescription>
-                      <CardTitle className='text-3xl text-yellow-600'>
-                        {summary.totalRisiko.toLocaleString()}
+                      <CardTitle className='text-3xl'>
+                        <CountUp value={summary.totalRisiko} />
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
@@ -333,7 +334,7 @@ export default function Klaster3Page() {
                     <CardHeader className='pb-2'>
                       <CardDescription>Jenis Faktor</CardDescription>
                       <CardTitle className='text-3xl'>
-                        {faktorRisikoData.length}
+                        <CountUp value={faktorRisikoData.length} />
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
@@ -510,7 +511,7 @@ export default function Klaster3Page() {
                     <CardHeader className='pb-2'>
                       <CardDescription>Total Pemeriksaan</CardDescription>
                       <CardTitle className='text-3xl'>
-                        {summary.totalPemeriksaan.toLocaleString()}
+                        <CountUp value={summary.totalPemeriksaan} />
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
@@ -523,8 +524,8 @@ export default function Klaster3Page() {
                   <Card>
                     <CardHeader className='pb-2'>
                       <CardDescription>Butuh Perawatan</CardDescription>
-                      <CardTitle className='text-3xl text-yellow-600'>
-                        {summary.butuhPerawatan.toLocaleString()}
+                      <CardTitle className='text-3xl'>
+                        <CountUp value={summary.butuhPerawatan} />
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
@@ -537,7 +538,7 @@ export default function Klaster3Page() {
                     <CardHeader className='pb-2'>
                       <CardDescription>Kategori Pasien</CardDescription>
                       <CardTitle className='text-3xl'>
-                        {pemeriksaanGigiData.length}
+                        <CountUp value={pemeriksaanGigiData.length} />
                       </CardTitle>
                     </CardHeader>
                     <CardContent>

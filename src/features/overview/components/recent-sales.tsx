@@ -115,34 +115,30 @@ export function RecentSales() {
           {topPenyakit.map((penyakit, index) => {
             const Icon = penyakit.icon;
             return (
-              <div key={index} className='flex items-center gap-2'>
-                <div className='bg-primary/10 text-primary flex h-7 w-7 items-center justify-center rounded-full'>
-                  <Icon className='h-3.5 w-3.5' />
-                </div>
-                <div className='min-w-0 flex-1 space-y-0.5'>
-                  <p className='truncate text-xs leading-none font-medium'>
-                    {penyakit.name}
-                  </p>
-                  <p className='text-muted-foreground text-[10px]'>
-                    {penyakit.code}
-                  </p>
-                </div>
-                <div className='flex flex-col items-end gap-0.5'>
-                  <span className='text-sm font-semibold tabular-nums'>
-                    {(penyakit.count || 0).toLocaleString('id-ID')}
-                  </span>
-                  <Badge
-                    variant={
-                      penyakit.trend === 'up'
-                        ? 'destructive'
-                        : penyakit.trend === 'down'
-                          ? 'secondary'
-                          : 'outline'
-                    }
-                    className='px-1 py-0 text-[10px]'
-                  >
-                    {penyakit.percent}
-                  </Badge>
+              <div
+                key={index}
+                className='grid gap-1 border-b pb-3 last:border-b-0 last:pb-0'
+              >
+                <div className='flex items-center gap-3'>
+                  <div className='bg-primary/10 text-primary flex h-9 w-9 items-center justify-center rounded-full'>
+                    <Icon className='h-4 w-4' />
+                  </div>
+                  <div className='min-w-0 flex-1'>
+                    <p className='truncate text-base leading-tight font-semibold'>
+                      {penyakit.name}
+                    </p>
+                    <p className='text-muted-foreground text-xs tracking-widest uppercase'>
+                      {penyakit.code}
+                    </p>
+                  </div>
+                  <div className='text-right'>
+                    <span className='text-xl leading-tight font-bold tabular-nums'>
+                      {(penyakit.count || 0).toLocaleString('id-ID')}
+                    </span>
+                    <div className='text-muted-foreground text-[11px]'>
+                      {penyakit.percent}
+                    </div>
+                  </div>
                 </div>
               </div>
             );

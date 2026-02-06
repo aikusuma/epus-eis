@@ -12,6 +12,7 @@ import {
   CardHeader,
   CardTitle
 } from '@/components/ui/card';
+import { CountUp } from '@/components/ui/count-up';
 import { Badge } from '@/components/ui/badge';
 import {
   IconAlertCircle,
@@ -206,7 +207,7 @@ export default function Klaster4Page() {
                     <CardHeader className='pb-2'>
                       <CardDescription>Total Kasus</CardDescription>
                       <CardTitle className='text-3xl'>
-                        {(summary.totalKasus || 0).toLocaleString()}
+                        <CountUp value={summary.totalKasus || 0} />
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
@@ -217,7 +218,9 @@ export default function Klaster4Page() {
                     <CardHeader className='pb-2'>
                       <CardDescription>Kasus Terbanyak</CardDescription>
                       <CardTitle className='text-3xl'>
-                        {summary.diagnosaTertinggi}
+                        <CountUp
+                          value={Number(summary.diagnosaTertinggi) || 0}
+                        />
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
@@ -229,8 +232,8 @@ export default function Klaster4Page() {
                   <Card>
                     <CardHeader className='pb-2'>
                       <CardDescription>Bahaya Tinggi</CardDescription>
-                      <CardTitle className='text-3xl text-red-600'>
-                        {(summary.kasusAkut || 0).toLocaleString()}
+                      <CardTitle className='text-3xl'>
+                        <CountUp value={summary.kasusAkut || 0} />
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
@@ -240,8 +243,8 @@ export default function Klaster4Page() {
                   <Card>
                     <CardHeader className='pb-2'>
                       <CardDescription>Bahaya Rendah</CardDescription>
-                      <CardTitle className='text-3xl text-green-600'>
-                        {(summary.kasusRingan || 0).toLocaleString()}
+                      <CardTitle className='text-3xl'>
+                        <CountUp value={summary.kasusRingan || 0} />
                       </CardTitle>
                     </CardHeader>
                     <CardContent>

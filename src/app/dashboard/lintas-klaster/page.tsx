@@ -8,6 +8,7 @@ import {
   CardHeader,
   CardTitle
 } from '@/components/ui/card';
+import { CountUp } from '@/components/ui/count-up';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DashboardFilter, FilterValues } from '@/components/dashboard-filter';
 import { Badge } from '@/components/ui/badge';
@@ -260,8 +261,9 @@ export default function LintasKlasterPage() {
                     </CardHeader>
                     <CardContent>
                       <div className='text-2xl font-bold'>
-                        {gawatDaruratSummary.totalKunjungan?.toLocaleString() ||
-                          0}
+                        <CountUp
+                          value={gawatDaruratSummary.totalKunjungan ?? 0}
+                        />
                       </div>
                       <div className='flex items-center gap-1 text-xs text-green-600'>
                         <IconTrendingUp className='h-3 w-3' />
@@ -278,7 +280,7 @@ export default function LintasKlasterPage() {
                     </CardHeader>
                     <CardContent>
                       <div className='text-2xl font-bold text-red-600'>
-                        {gawatDaruratSummary.triaseMerah?.toLocaleString() || 0}
+                        <CountUp value={gawatDaruratSummary.triaseMerah || 0} />
                       </div>
                       <p className='text-muted-foreground text-xs'>
                         Kasus gawat darurat
@@ -294,8 +296,9 @@ export default function LintasKlasterPage() {
                     </CardHeader>
                     <CardContent>
                       <div className='text-2xl font-bold text-yellow-600'>
-                        {gawatDaruratSummary.triaseKuning?.toLocaleString() ||
-                          0}
+                        <CountUp
+                          value={gawatDaruratSummary.triaseKuning || 0}
+                        />
                       </div>
                       <p className='text-muted-foreground text-xs'>
                         Kasus mendesak
@@ -311,7 +314,7 @@ export default function LintasKlasterPage() {
                     </CardHeader>
                     <CardContent>
                       <div className='text-2xl font-bold text-green-600'>
-                        {gawatDaruratSummary.triaseHijau?.toLocaleString() || 0}
+                        <CountUp value={gawatDaruratSummary.triaseHijau || 0} />
                       </div>
                       <p className='text-muted-foreground text-xs'>
                         Kasus tidak mendesak
@@ -431,7 +434,7 @@ export default function LintasKlasterPage() {
                     </CardHeader>
                     <CardContent>
                       <div className='text-2xl font-bold'>
-                        {farmasiSummary.totalResep?.toLocaleString() || 0}
+                        <CountUp value={farmasiSummary.totalResep ?? 0} />
                       </div>
                       <div className='flex items-center gap-1 text-xs text-green-600'>
                         <IconTrendingUp className='h-3 w-3' />
@@ -448,7 +451,7 @@ export default function LintasKlasterPage() {
                     </CardHeader>
                     <CardContent>
                       <div className='text-2xl font-bold'>
-                        {farmasiSummary.totalObatKeluar?.toLocaleString() || 0}
+                        <CountUp value={farmasiSummary.totalObatKeluar ?? 0} />
                       </div>
                       <p className='text-muted-foreground text-xs'>Item obat</p>
                     </CardContent>
@@ -462,7 +465,7 @@ export default function LintasKlasterPage() {
                     </CardHeader>
                     <CardContent>
                       <div className='text-2xl font-bold'>
-                        {farmasiSummary.totalRacikan?.toLocaleString() || 0}
+                        <CountUp value={farmasiSummary.totalRacikan ?? 0} />
                       </div>
                       <p className='text-muted-foreground text-xs'>
                         Resep racikan
@@ -478,11 +481,15 @@ export default function LintasKlasterPage() {
                     </CardHeader>
                     <CardContent>
                       <div className='text-2xl font-bold'>
-                        {farmasiData.length > 0
-                          ? Math.round(
-                              farmasiSummary.totalResep / farmasiData.length
-                            )
-                          : 0}
+                        <CountUp
+                          value={
+                            farmasiData.length > 0
+                              ? Math.round(
+                                  farmasiSummary.totalResep / farmasiData.length
+                                )
+                              : 0
+                          }
+                        />
                       </div>
                       <p className='text-muted-foreground text-xs'>
                         Resep per hari
@@ -598,8 +605,9 @@ export default function LintasKlasterPage() {
                     </CardHeader>
                     <CardContent>
                       <div className='text-2xl font-bold'>
-                        {laboratoriumSummary.totalPemeriksaan?.toLocaleString() ||
-                          0}
+                        <CountUp
+                          value={laboratoriumSummary.totalPemeriksaan ?? 0}
+                        />
                       </div>
                       <div className='flex items-center gap-1 text-xs text-green-600'>
                         <IconTrendingUp className='h-3 w-3' />
@@ -616,7 +624,7 @@ export default function LintasKlasterPage() {
                     </CardHeader>
                     <CardContent>
                       <div className='text-2xl font-bold'>
-                        {laboratoriumSummary.hematologi?.toLocaleString() || 0}
+                        <CountUp value={laboratoriumSummary.hematologi ?? 0} />
                       </div>
                       <p className='text-muted-foreground text-xs'>
                         {laboratoriumSummary.totalPemeriksaan
@@ -639,7 +647,7 @@ export default function LintasKlasterPage() {
                     </CardHeader>
                     <CardContent>
                       <div className='text-2xl font-bold'>
-                        {laboratoriumSummary.kimiaDarah?.toLocaleString() || 0}
+                        <CountUp value={laboratoriumSummary.kimiaDarah ?? 0} />
                       </div>
                       <p className='text-muted-foreground text-xs'>
                         {laboratoriumSummary.totalPemeriksaan
@@ -662,7 +670,7 @@ export default function LintasKlasterPage() {
                     </CardHeader>
                     <CardContent>
                       <div className='text-2xl font-bold'>
-                        {laboratoriumSummary.urinalisis?.toLocaleString() || 0}
+                        <CountUp value={laboratoriumSummary.urinalisis ?? 0} />
                       </div>
                       <p className='text-muted-foreground text-xs'>
                         {laboratoriumSummary.totalPemeriksaan
@@ -685,7 +693,7 @@ export default function LintasKlasterPage() {
                     </CardHeader>
                     <CardContent>
                       <div className='text-2xl font-bold'>
-                        {laboratoriumSummary.serologi?.toLocaleString() || 0}
+                        <CountUp value={laboratoriumSummary.serologi ?? 0} />
                       </div>
                       <p className='text-muted-foreground text-xs'>
                         {laboratoriumSummary.totalPemeriksaan
@@ -818,8 +826,9 @@ export default function LintasKlasterPage() {
                     </CardHeader>
                     <CardContent>
                       <div className='text-2xl font-bold text-green-600'>
-                        {rawatInapSummary.totalPasienMasuk?.toLocaleString() ||
-                          0}
+                        <CountUp
+                          value={rawatInapSummary.totalPasienMasuk ?? 0}
+                        />
                       </div>
                       <p className='text-muted-foreground text-xs'>
                         Pasien masuk periode ini
@@ -835,8 +844,9 @@ export default function LintasKlasterPage() {
                     </CardHeader>
                     <CardContent>
                       <div className='text-2xl font-bold text-red-600'>
-                        {rawatInapSummary.totalPasienKeluar?.toLocaleString() ||
-                          0}
+                        <CountUp
+                          value={rawatInapSummary.totalPasienKeluar ?? 0}
+                        />
                       </div>
                       <p className='text-muted-foreground text-xs'>
                         Pasien keluar periode ini
@@ -852,7 +862,7 @@ export default function LintasKlasterPage() {
                     </CardHeader>
                     <CardContent>
                       <div className='text-2xl font-bold'>
-                        {rawatInapSummary.bedTerpakai || 0}
+                        <CountUp value={rawatInapSummary.bedTerpakai ?? 0} />
                       </div>
                       <p className='text-muted-foreground text-xs'>
                         Terpakai saat ini
@@ -868,7 +878,7 @@ export default function LintasKlasterPage() {
                     </CardHeader>
                     <CardContent>
                       <div className='text-2xl font-bold'>
-                        {rawatInapSummary.bedKosong || 0}
+                        <CountUp value={rawatInapSummary.bedKosong ?? 0} />
                       </div>
                       <p className='text-muted-foreground text-xs'>
                         Tersedia saat ini

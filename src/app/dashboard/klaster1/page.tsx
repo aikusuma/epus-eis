@@ -11,6 +11,7 @@ import {
   CardHeader,
   CardTitle
 } from '@/components/ui/card';
+import { CountUp } from '@/components/ui/count-up';
 import { Badge } from '@/components/ui/badge';
 import {
   IconUsers,
@@ -196,6 +197,9 @@ export default function Klaster1Page() {
     pemakaianObat: 0
   };
 
+  const totalPendapatan = Number(summary.totalPendapatan || 0);
+  const rataPendapatan = totalPendapatan / 12;
+
   const ketersediaanSDM =
     summary.targetNakes > 0
       ? Math.round((summary.totalNakes / summary.targetNakes) * 100)
@@ -243,7 +247,7 @@ export default function Klaster1Page() {
                     <CardHeader className='pb-2'>
                       <CardDescription>Total Tenaga Kesehatan</CardDescription>
                       <CardTitle className='text-3xl'>
-                        {summary.totalNakes.toLocaleString()}
+                        <CountUp value={summary.totalNakes} />
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
@@ -290,7 +294,7 @@ export default function Klaster1Page() {
                     <CardHeader className='pb-2'>
                       <CardDescription>Pemakaian Obat</CardDescription>
                       <CardTitle className='text-3xl'>
-                        {summary.pemakaianObat.toLocaleString()}
+                        <CountUp value={summary.pemakaianObat} />
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
@@ -392,7 +396,7 @@ export default function Klaster1Page() {
                     <CardHeader className='pb-2'>
                       <CardDescription>Total Item Obat</CardDescription>
                       <CardTitle className='text-3xl'>
-                        {stokObatData.length}
+                        <CountUp value={stokObatData.length} />
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
@@ -403,7 +407,7 @@ export default function Klaster1Page() {
                     <CardHeader className='pb-2'>
                       <CardDescription>Total Stok</CardDescription>
                       <CardTitle className='text-3xl'>
-                        {summary.totalObat.toLocaleString()}
+                        <CountUp value={summary.totalObat} />
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
@@ -416,11 +420,13 @@ export default function Klaster1Page() {
                     <CardHeader className='pb-2'>
                       <CardDescription>Stok Kritis</CardDescription>
                       <CardTitle className='text-3xl text-red-600'>
-                        {
-                          stokObatData.filter(
-                            (o: any) => o.stok < o.pemakaian * 0.5
-                          ).length
-                        }
+                        <CountUp
+                          value={
+                            stokObatData.filter(
+                              (o: any) => o.stok < o.pemakaian * 0.5
+                            ).length
+                          }
+                        />
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
@@ -434,7 +440,7 @@ export default function Klaster1Page() {
                     <CardHeader className='pb-2'>
                       <CardDescription>Pemakaian Bulan Ini</CardDescription>
                       <CardTitle className='text-3xl'>
-                        {summary.pemakaianObat.toLocaleString()}
+                        <CountUp value={summary.pemakaianObat} />
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
@@ -446,18 +452,18 @@ export default function Klaster1Page() {
                   </Card>
                 </div>
 
-                <div className='grid gap-4 md:grid-cols-2'>
-                  <Card>
+                <div className='grid gap-6 md:grid-cols-2'>
+                  <Card className='h-full'>
                     <CardHeader>
                       <CardTitle>Top 8 Obat - Stok vs Pemakaian</CardTitle>
                       <CardDescription>
                         Perbandingan stok dan pemakaian bulan ini
                       </CardDescription>
                     </CardHeader>
-                    <CardContent>
+                    <CardContent className='overflow-hidden px-2 pt-2 sm:px-4 sm:pt-4 sm:pb-6'>
                       <ChartContainer
                         config={obatChartConfig}
-                        className='h-[350px]'
+                        className='h-[380px]'
                       >
                         <BarChart data={stokObatData} layout='vertical'>
                           <CartesianGrid strokeDasharray='3 3' />
@@ -484,15 +490,15 @@ export default function Klaster1Page() {
                     </CardContent>
                   </Card>
 
-                  <Card>
+                  <Card className='h-full'>
                     <CardHeader>
                       <CardTitle>Distribusi Stok Obat</CardTitle>
                       <CardDescription>Proporsi stok per obat</CardDescription>
                     </CardHeader>
-                    <CardContent>
+                    <CardContent className='overflow-hidden px-2 pt-2 sm:px-4 sm:pt-4 sm:pb-6'>
                       <ChartContainer
                         config={obatChartConfig}
-                        className='h-[350px]'
+                        className='h-[380px]'
                       >
                         <PieChart>
                           <Pie
@@ -535,7 +541,7 @@ export default function Klaster1Page() {
                     <CardHeader className='pb-2'>
                       <CardDescription>Total Pendapatan</CardDescription>
                       <CardTitle className='text-3xl'>
-                        Rp {(summary.totalPendapatan / 1000000000).toFixed(2)} M
+                        Rp {(totalPendapatan / 1000000000).toFixed(2)} M
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
@@ -549,7 +555,7 @@ export default function Klaster1Page() {
                     <CardHeader className='pb-2'>
                       <CardDescription>Kategori Terbesar</CardDescription>
                       <CardTitle className='text-3xl'>
-                        {keuanganData[0]?.kategori || '-'}
+                        <CountUp value={keuanganData[0]?.kategori || '-'} />
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
@@ -564,7 +570,7 @@ export default function Klaster1Page() {
                     <CardHeader className='pb-2'>
                       <CardDescription>Jumlah Sumber Dana</CardDescription>
                       <CardTitle className='text-3xl'>
-                        {keuanganData.length}
+                        <CountUp value={keuanganData.length} />
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
@@ -577,8 +583,7 @@ export default function Klaster1Page() {
                     <CardHeader className='pb-2'>
                       <CardDescription>Rata-rata per Bulan</CardDescription>
                       <CardTitle className='text-3xl'>
-                        Rp {(summary.totalPendapatan / 12 / 1000000).toFixed(0)}{' '}
-                        Jt
+                        Rp {(rataPendapatan / 1000000).toFixed(0)} Jt
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
@@ -628,19 +633,31 @@ export default function Klaster1Page() {
                     </CardContent>
                   </Card>
 
-                  <Card>
+                  <Card className='h-full'>
                     <CardHeader>
                       <CardTitle>Tren Pendapatan vs Pengeluaran</CardTitle>
                       <CardDescription>
                         Dalam jutaan rupiah - per bulan
                       </CardDescription>
                     </CardHeader>
-                    <CardContent>
+                    <CardContent className='overflow-hidden px-2 pt-2 sm:px-4 sm:pt-4 sm:pb-6'>
                       <ChartContainer
                         config={keuanganChartConfig}
-                        className='h-[300px]'
+                        className='h-[360px]'
                       >
-                        <LineChart data={keuanganTrend}>
+                        <LineChart
+                          data={
+                            keuanganTrend.length
+                              ? keuanganTrend
+                              : [
+                                  {
+                                    bulan: 'N/A',
+                                    pendapatan: 0,
+                                    pengeluaran: 0
+                                  }
+                                ]
+                          }
+                        >
                           <CartesianGrid strokeDasharray='3 3' />
                           <XAxis dataKey='bulan' />
                           <YAxis />
@@ -654,7 +671,7 @@ export default function Klaster1Page() {
                           <Line
                             type='monotone'
                             dataKey='pengeluaran'
-                            stroke='var(--destructive)'
+                            stroke='var(--color-pengeluaran)'
                             strokeWidth={2}
                           />
                         </LineChart>

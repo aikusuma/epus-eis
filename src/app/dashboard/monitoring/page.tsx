@@ -10,6 +10,7 @@ import {
   CardHeader,
   CardTitle
 } from '@/components/ui/card';
+import { CountUp } from '@/components/ui/count-up';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import PageContainer from '@/components/layout/page-container';
@@ -243,14 +244,18 @@ export default function MonitoringPage() {
                   </CardHeader>
                   <CardContent>
                     <div className='text-2xl font-bold'>
-                      {(
-                        (item.laki || 0) + (item.perempuan || 0)
-                      ).toLocaleString()}
+                      <CountUp
+                        value={(item.laki || 0) + (item.perempuan || 0)}
+                      />
                     </div>
                     <div className='text-muted-foreground flex items-center gap-2 text-xs'>
-                      <span>L: {(item.laki || 0).toLocaleString()}</span>
+                      <span>
+                        L: <CountUp value={item.laki || 0} />
+                      </span>
                       <span>|</span>
-                      <span>P: {(item.perempuan || 0).toLocaleString()}</span>
+                      <span>
+                        P: <CountUp value={item.perempuan || 0} />
+                      </span>
                     </div>
                   </CardContent>
                 </Card>

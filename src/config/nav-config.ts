@@ -92,7 +92,7 @@ export const navItems: NavItem[] = [
       {
         title: 'Keluar',
         url: '/logout',
-        icon: 'logout',
+        icon: 'arrowRight',
         shortcut: ['k', 'l']
       }
     ]
