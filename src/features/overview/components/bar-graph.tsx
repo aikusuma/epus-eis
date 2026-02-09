@@ -106,7 +106,7 @@ export function BarGraph() {
               </span>
               <span className='text-lg leading-none font-bold sm:text-3xl'>
                 <CountUp
-                  value={chartData.reduce(
+                  value={chartData.reduce<number>(
                     (acc, curr) => acc + (curr[tab] || 0),
                     0
                   )}
