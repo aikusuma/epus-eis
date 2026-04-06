@@ -81,6 +81,19 @@ export function DashboardFilter({
   const [puskesmasPopoverOpen, setPuskesmasPopoverOpen] = useState(false);
 
   // Initialize from server context if available, otherwise fetch client-side
+  const initialContext = useMemo(
+    () =>
+      serverUserContext
+        ? {
+            roleCode: '',
+            puskesmasId: serverUserContext.puskesmasId,
+            puskesmasName: serverUserContext.puskesmasName,
+            isLocked: serverUserContext.isLocked
+          }
+        : undefined,
+    [serverUserContext]
+  );
+
   const [userContext, setUserContext] = useState<
     | {
         roleCode: string;
@@ -89,16 +102,7 @@ export function DashboardFilter({
         isLocked: boolean;
       }
     | undefined
-  >(
-    serverUserContext
-      ? {
-          roleCode: '',
-          puskesmasId: serverUserContext.puskesmasId,
-          puskesmasName: serverUserContext.puskesmasName,
-          isLocked: serverUserContext.isLocked
-        }
-      : undefined
-  );
+  >(initialContext);
 
   // Default to Feb 1 - today (since dummy data starts from February)
   const today = new Date();
