@@ -74,6 +74,14 @@ export function DashboardFilter({
   const [datePopoverOpen, setDatePopoverOpen] = useState(false);
   const [puskesmasPopoverOpen, setPuskesmasPopoverOpen] = useState(false);
 
+  // User context
+  const [userContext, setUserContext] = useState<{
+    roleCode: string;
+    puskesmasId?: string | null;
+    puskesmasName?: string | null;
+    isLocked: boolean;
+  } | null>(null);
+
   // Default to Feb 1 - today (since dummy data starts from February)
   const today = new Date();
   const febStart = new Date(today.getFullYear(), 1, 1); // Feb 1
@@ -86,6 +94,28 @@ export function DashboardFilter({
   const defaultBulan = 2; // February
   const defaultTahun = 2026;
 
+  // Fetch user context
+  useEffect(() => {
+    async function fetchUser() {
+      try {
+        const res = await fetch('/api/auth/me');
+        if (res.ok) {
+          const data = await res.json();
+          const user = data.user;
+          setUserContext({
+            roleCode: user.roleCode,
+            puskesmasId: user.puskesmas?.id || user.puskesmasId,
+            puskesmasName: user.puskesmas?.nama || user.puskesmas,
+            isLocked: !!user.puskesmas?.id || !!user.puskesmasId
+          });
+        }
+      } catch (error) {
+        console.error('Error fetching user:', error);
+      }
+    }
+    fetchUser();
+  }, []);
+
   const [filters, setFilters] = useState<FilterValues>({
     dateRange: defaultRange,
     puskesmasId: 'all',
@@ -93,6 +123,16 @@ export function DashboardFilter({
     bulan: defaultBulan,
     tahun: defaultTahun
   });
+
+  // Update puskesmasId when user context loads
+  useEffect(() => {
+    if (userContext?.isLocked) {
+      setFilters((prev) => ({
+        ...prev,
+        puskesmasId: userContext.puskesmasId || 'all'
+      }));
+    }
+  }, [userContext?.isLocked, userContext?.puskesmasId]);
 
   // Fetch puskesmas list
   useEffect(() => {
@@ -269,73 +309,87 @@ export function DashboardFilter({
         </PopoverContent>
       </Popover>
 
-      {/* Puskesmas Searchable Combobox */}
-      <Popover
-        open={puskesmasPopoverOpen}
-        onOpenChange={setPuskesmasPopoverOpen}
-      >
-        <PopoverTrigger asChild>
-          <Button
-            variant='outline'
-            size='sm'
-            className='h-9 w-[220px] justify-between gap-1 px-3'
-            disabled={isLoading}
-          >
-            <IconBuilding className='h-4 w-4 shrink-0 opacity-70' />
-            <span className='flex-1 truncate text-left'>
-              {isLoading ? 'Loading...' : selectedPuskesmas}
-            </span>
-            <IconChevronDown className='h-3.5 w-3.5 shrink-0 opacity-50' />
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent className='w-[280px] p-0' align='start'>
-          <Command>
-            <CommandInput placeholder='Cari puskesmas...' />
-            <CommandList>
-              <CommandEmpty>Tidak ditemukan.</CommandEmpty>
-              <CommandGroup>
-                <CommandItem
-                  value='all'
-                  onSelect={() => {
-                    handleFilterChange('puskesmasId', 'all');
-                    setPuskesmasPopoverOpen(false);
-                  }}
-                >
-                  <IconCheck
-                    className={cn(
-                      'mr-2 h-4 w-4',
-                      filters.puskesmasId === 'all'
-                        ? 'opacity-100'
-                        : 'opacity-0'
-                    )}
-                  />
-                  Semua Puskesmas
-                </CommandItem>
-                {puskesmasList.map((pkm) => (
+      {/* Puskesmas Selector */}
+      {userContext?.isLocked ? (
+        /* Locked: Show only assigned puskesmas with badge */
+        <div className='bg-muted/30 flex items-center gap-2 rounded-lg border px-3 py-2'>
+          <IconBuilding className='h-4 w-4 opacity-70' />
+          <span className='max-w-[180px] truncate text-sm font-medium'>
+            {userContext.puskesmasName || 'Loading...'}
+          </span>
+          <Badge variant='secondary' className='px-1.5 py-0 text-[10px]'>
+            Terkunci
+          </Badge>
+        </div>
+      ) : (
+        /* Dinkes Level: Show full dropdown */
+        <Popover
+          open={puskesmasPopoverOpen}
+          onOpenChange={setPuskesmasPopoverOpen}
+        >
+          <PopoverTrigger asChild>
+            <Button
+              variant='outline'
+              size='sm'
+              className='h-9 w-[220px] justify-between gap-1 px-3'
+              disabled={isLoading}
+            >
+              <IconBuilding className='h-4 w-4 shrink-0 opacity-70' />
+              <span className='flex-1 truncate text-left'>
+                {isLoading ? 'Loading...' : selectedPuskesmas}
+              </span>
+              <IconChevronDown className='h-3.5 w-3.5 shrink-0 opacity-50' />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className='w-[280px] p-0' align='start'>
+            <Command>
+              <CommandInput placeholder='Cari puskesmas...' />
+              <CommandList>
+                <CommandEmpty>Tidak ditemukan.</CommandEmpty>
+                <CommandGroup>
                   <CommandItem
-                    key={pkm.id}
-                    value={pkm.namaPuskesmas}
+                    value='all'
                     onSelect={() => {
-                      handleFilterChange('puskesmasId', pkm.id);
+                      handleFilterChange('puskesmasId', 'all');
                       setPuskesmasPopoverOpen(false);
                     }}
                   >
                     <IconCheck
                       className={cn(
                         'mr-2 h-4 w-4',
-                        filters.puskesmasId === pkm.id
+                        filters.puskesmasId === 'all'
                           ? 'opacity-100'
                           : 'opacity-0'
                       )}
                     />
-                    {pkm.namaPuskesmas}
+                    Semua Puskesmas
                   </CommandItem>
-                ))}
-              </CommandGroup>
-            </CommandList>
-          </Command>
-        </PopoverContent>
-      </Popover>
+                  {puskesmasList.map((pkm) => (
+                    <CommandItem
+                      key={pkm.id}
+                      value={pkm.namaPuskesmas}
+                      onSelect={() => {
+                        handleFilterChange('puskesmasId', pkm.id);
+                        setPuskesmasPopoverOpen(false);
+                      }}
+                    >
+                      <IconCheck
+                        className={cn(
+                          'mr-2 h-4 w-4',
+                          filters.puskesmasId === pkm.id
+                            ? 'opacity-100'
+                            : 'opacity-0'
+                        )}
+                      />
+                      {pkm.namaPuskesmas}
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              </CommandList>
+            </Command>
+          </PopoverContent>
+        </Popover>
+      )}
 
       {/* Jenis Layanan */}
       {showJenisLayanan && (
