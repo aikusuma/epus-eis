@@ -172,10 +172,6 @@ export default function LoginPage() {
               </form>
 
               <div className='text-muted-foreground mt-4 space-y-2 text-xs'>
-                <div>
-                  Demo: <span className='font-medium'>{DEMO_EMAIL}</span> /{' '}
-                  <span className='font-medium'>{DEMO_PASSWORD}</span>
-                </div>
                 <div className='text-[11px]'>
                   Hubungi admin {DINKES_NAME} jika lupa kredensial.
                 </div>

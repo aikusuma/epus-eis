@@ -68,13 +68,24 @@ export async function GET(req: NextRequest) {
     // Get filter based on user access
     const accessFilter = filterByUserAccess(user);
 
-    // Get query params - allow override from query string
+    // Get query params
     const { searchParams } = new URL(req.url);
     const puskesmasIdParam = searchParams.get('puskesmasId');
-    const puskesmasId =
-      puskesmasIdParam && puskesmasIdParam !== 'all'
-        ? puskesmasIdParam
-        : accessFilter.puskesmasId;
+
+    // Enforce puskesmas restriction:
+    // - Dinkes level: can use query param or default to all
+    // - Kepala Puskesmas: LOCKED to their own puskesmas only
+    let puskesmasId: string | undefined;
+    if (accessFilter.puskesmasId) {
+      // User is restricted to a specific puskesmas - ignore query param
+      puskesmasId = accessFilter.puskesmasId;
+    } else {
+      // Dinkes level - allow query param override
+      puskesmasId =
+        puskesmasIdParam && puskesmasIdParam !== 'all'
+          ? puskesmasIdParam
+          : undefined;
+    }
 
     // If month/year not provided, find the latest month with data
     let bulan: number;

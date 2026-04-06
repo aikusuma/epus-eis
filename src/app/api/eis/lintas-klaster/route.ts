@@ -1,5 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import {
+  getUserFromRequest,
+  createUserContext,
+  UNAUTHORIZED,
+  filterByUserAccess
+} from '@/lib/acl';
+import { PERMISSIONS } from '@/types/acl';
+import {
   getGawatDarurat,
   getGawatDaruratSummary,
   getFarmasi,
@@ -21,12 +28,27 @@ import { revalidateTag } from 'next/cache';
 
 export async function GET(request: NextRequest) {
   try {
+    const payload = await getUserFromRequest(request);
+    if (!payload) return UNAUTHORIZED();
+
+    const user = createUserContext(payload);
+    if (!user.permissions.includes(PERMISSIONS.VIEW_DASHBOARD)) {
+      return NextResponse.json({ error: 'Akses ditolak' }, { status: 403 });
+    }
+
+    const accessFilter = filterByUserAccess(user);
     const searchParams = request.nextUrl.searchParams;
     const puskesmasIdParam = searchParams.get('puskesmasId');
-    const puskesmasId =
-      puskesmasIdParam && puskesmasIdParam !== 'all'
-        ? puskesmasIdParam
-        : undefined;
+    // Enforce puskesmas restriction
+    let puskesmasId: string | undefined;
+    if (accessFilter.puskesmasId) {
+      puskesmasId = accessFilter.puskesmasId;
+    } else {
+      puskesmasId =
+        puskesmasIdParam && puskesmasIdParam !== 'all'
+          ? puskesmasIdParam
+          : undefined;
+    }
     const tanggal = searchParams.get('tanggal')
       ? new Date(searchParams.get('tanggal')!)
       : undefined;

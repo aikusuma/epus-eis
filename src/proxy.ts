@@ -5,7 +5,12 @@ export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Public routes that don't require auth
-  const publicRoutes = ['/login', '/api/auth/login'];
+  const publicRoutes = [
+    '/login',
+    '/api/auth/login',
+    '/logout',
+    '/api/auth/logout'
+  ];
 
   // Webhook endpoints use HMAC signature auth, not JWT
   const webhookRoutes = [
