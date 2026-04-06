@@ -21,7 +21,7 @@
     "docker:up": "docker-compose up -d",
     "docker:down": "docker-compose down",
     "docker:logs": "docker-compose logs -f",
-    "postinstall": "bun run scripts/copy-scalar.mjs"
+    "postinstall": "test -f scripts/copy-scalar.mjs && bun run scripts/copy-scalar.mjs || true"
   },
   "lint-staged": {
     "**/*.{js,jsx,tsx,ts,css,less,scss,sass}": [
