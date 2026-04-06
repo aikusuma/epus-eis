@@ -6,22 +6,30 @@ import OverviewFilter from './overview-filter';
 import { SummaryCards } from '@/features/overview/components/summary-cards';
 import { OverviewFilterProvider } from '@/features/overview/context/overview-filter-context';
 
-export default function OverViewLayout({
-  sales,
-  pie_stats,
-  bar_stats,
-  area_stats
-}: {
+interface OverViewLayoutProps {
   sales: React.ReactNode;
   pie_stats: React.ReactNode;
   bar_stats: React.ReactNode;
   area_stats: React.ReactNode;
-}) {
+  serverUserContext?: {
+    puskesmasId?: string | null;
+    puskesmasName?: string | null;
+    isLocked: boolean;
+  } | null;
+}
+
+export default function OverViewLayout({
+  sales,
+  pie_stats,
+  bar_stats,
+  area_stats,
+  serverUserContext
+}: OverViewLayoutProps) {
   return (
     <OverviewFilterProvider>
       <PageContainer>
         <div className='flex flex-1 flex-col space-y-4'>
-          <OverviewFilter />
+          <OverviewFilter serverUserContext={serverUserContext} />
 
           <div className='flex items-center justify-between space-y-2'>
             <h2 className='text-2xl font-bold tracking-tight'>

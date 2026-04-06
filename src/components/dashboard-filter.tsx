@@ -55,6 +55,11 @@ interface DashboardFilterProps {
   onFilterChange?: (filters: FilterValues) => void;
   showJenisLayanan?: boolean;
   className?: string;
+  serverUserContext?: {
+    puskesmasId?: string | null;
+    puskesmasName?: string | null;
+    isLocked: boolean;
+  } | null;
 }
 
 const JENIS_LAYANAN_OPTIONS = [
@@ -67,20 +72,33 @@ const JENIS_LAYANAN_OPTIONS = [
 export function DashboardFilter({
   onFilterChange,
   showJenisLayanan = true,
-  className = ''
+  className = '',
+  serverUserContext
 }: DashboardFilterProps) {
   const [puskesmasList, setPuskesmasList] = useState<Puskesmas[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [datePopoverOpen, setDatePopoverOpen] = useState(false);
   const [puskesmasPopoverOpen, setPuskesmasPopoverOpen] = useState(false);
 
-  // User context
-  const [userContext, setUserContext] = useState<{
-    roleCode: string;
-    puskesmasId?: string | null;
-    puskesmasName?: string | null;
-    isLocked: boolean;
-  } | null>(null);
+  // Initialize from server context if available, otherwise fetch client-side
+  const [userContext, setUserContext] = useState<
+    | {
+        roleCode: string;
+        puskesmasId?: string | null;
+        puskesmasName?: string | null;
+        isLocked: boolean;
+      }
+    | undefined
+  >(
+    serverUserContext
+      ? {
+          roleCode: '',
+          puskesmasId: serverUserContext.puskesmasId,
+          puskesmasName: serverUserContext.puskesmasName,
+          isLocked: serverUserContext.isLocked
+        }
+      : undefined
+  );
 
   // Default to Feb 1 - today (since dummy data starts from February)
   const today = new Date();
@@ -94,45 +112,47 @@ export function DashboardFilter({
   const defaultBulan = 2; // February
   const defaultTahun = 2026;
 
-  // Fetch user context
+  // Only fetch client-side if no server context provided
   useEffect(() => {
+    if (serverUserContext) return; // Already have server context
+
     async function fetchUser() {
       try {
         const res = await fetch('/api/auth/me');
         if (res.ok) {
           const data = await res.json();
           const user = data.user;
+          const isLocked = !!user.puskesmas?.id || !!user.puskesmasId;
           setUserContext({
             roleCode: user.roleCode,
             puskesmasId: user.puskesmas?.id || user.puskesmasId,
             puskesmasName: user.puskesmas?.nama || user.puskesmas,
-            isLocked: !!user.puskesmas?.id || !!user.puskesmasId
+            isLocked
           });
+          // Update filter immediately
+          if (isLocked) {
+            setFilters((prev) => ({
+              ...prev,
+              puskesmasId: user.puskesmas?.id || user.puskesmasId || 'all'
+            }));
+          }
         }
       } catch (error) {
         console.error('Error fetching user:', error);
       }
     }
     fetchUser();
-  }, []);
+  }, [serverUserContext]);
 
   const [filters, setFilters] = useState<FilterValues>({
     dateRange: defaultRange,
-    puskesmasId: 'all',
+    puskesmasId: serverUserContext?.isLocked
+      ? serverUserContext.puskesmasId || 'all'
+      : 'all',
     jenisLayanan: 'puskesmas',
     bulan: defaultBulan,
     tahun: defaultTahun
   });
-
-  // Update puskesmasId when user context loads
-  useEffect(() => {
-    if (userContext?.isLocked) {
-      setFilters((prev) => ({
-        ...prev,
-        puskesmasId: userContext.puskesmasId || 'all'
-      }));
-    }
-  }, [userContext?.isLocked, userContext?.puskesmasId]);
 
   // Fetch puskesmas list
   useEffect(() => {

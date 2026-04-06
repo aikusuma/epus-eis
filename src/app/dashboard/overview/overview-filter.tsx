@@ -4,16 +4,30 @@ import { useCallback } from 'react';
 import { DashboardFilter, FilterValues } from '@/components/dashboard-filter';
 import { useOverviewFilters } from '@/features/overview/context/overview-filter-context';
 
-export default function OverviewFilter() {
+interface OverviewFilterProps {
+  serverUserContext?: {
+    puskesmasId?: string | null;
+    puskesmasName?: string | null;
+    isLocked: boolean;
+  } | null;
+}
+
+export default function OverviewFilter({
+  serverUserContext
+}: OverviewFilterProps) {
   const { setFilters } = useOverviewFilters();
 
   const handleFilterChange = useCallback(
     (newFilters: FilterValues) => {
       setFilters(newFilters);
-      console.log('Overview Filters changed:', newFilters);
     },
     [setFilters]
   );
 
-  return <DashboardFilter onFilterChange={handleFilterChange} />;
+  return (
+    <DashboardFilter
+      onFilterChange={handleFilterChange}
+      serverUserContext={serverUserContext}
+    />
+  );
 }
