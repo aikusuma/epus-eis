@@ -74,17 +74,24 @@ export function DashboardFilter({
   const [datePopoverOpen, setDatePopoverOpen] = useState(false);
   const [puskesmasPopoverOpen, setPuskesmasPopoverOpen] = useState(false);
 
-  // Default to current month range
-  const currentDate = new Date();
+  // Default to Feb 1 - today (since dummy data starts from February)
+  const today = new Date();
+  const febStart = new Date(today.getFullYear(), 1, 1); // Feb 1
   const defaultRange: DateRange = {
-    from: startOfMonth(currentDate),
-    to: endOfMonth(currentDate)
+    from: febStart,
+    to: today
   };
+
+  // Force to February 2026 (where dummy data exists)
+  const defaultBulan = 2; // February
+  const defaultTahun = 2026;
 
   const [filters, setFilters] = useState<FilterValues>({
     dateRange: defaultRange,
     puskesmasId: 'all',
-    jenisLayanan: 'puskesmas'
+    jenisLayanan: 'puskesmas',
+    bulan: defaultBulan,
+    tahun: defaultTahun
   });
 
   // Fetch puskesmas list
@@ -167,17 +174,13 @@ export function DashboardFilter({
   // Quick date presets
   const setThisMonth = () => {
     handleFilterChange('dateRange', {
-      from: startOfMonth(currentDate),
-      to: endOfMonth(currentDate)
+      from: startOfMonth(today),
+      to: endOfMonth(today)
     });
   };
 
   const setLastMonth = () => {
-    const lastMonth = new Date(
-      currentDate.getFullYear(),
-      currentDate.getMonth() - 1,
-      1
-    );
+    const lastMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1);
     handleFilterChange('dateRange', {
       from: startOfMonth(lastMonth),
       to: endOfMonth(lastMonth)
@@ -186,8 +189,8 @@ export function DashboardFilter({
 
   const setThisYear = () => {
     handleFilterChange('dateRange', {
-      from: new Date(currentDate.getFullYear(), 0, 1),
-      to: new Date(currentDate.getFullYear(), 11, 31)
+      from: new Date(today.getFullYear(), 0, 1),
+      to: new Date(today.getFullYear(), 11, 31)
     });
   };
 
@@ -382,11 +385,11 @@ export function DashboardFilter({
 
 // Hook untuk menggunakan filter di pages
 export function useFilter() {
-  const currentDate = new Date();
+  const today = new Date();
   const [filterValues, setFilterValues] = useState<FilterValues>({
     dateRange: {
-      from: startOfMonth(currentDate),
-      to: endOfMonth(currentDate)
+      from: startOfMonth(today),
+      to: endOfMonth(today)
     },
     puskesmasId: 'all',
     jenisLayanan: 'puskesmas'

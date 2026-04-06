@@ -14,7 +14,8 @@ import {
   getOverviewTrend,
   getTopDiagnosa,
   getPuskesmasCount,
-  getKunjunganBySiklusHidup
+  getKunjunganBySiklusHidup,
+  getLatestDataMonth
 } from '@/lib/eis-data';
 import { PERMISSIONS } from '@/types/acl';
 
@@ -74,12 +75,25 @@ export async function GET(req: NextRequest) {
       puskesmasIdParam && puskesmasIdParam !== 'all'
         ? puskesmasIdParam
         : accessFilter.puskesmasId;
-    const bulan = searchParams.get('bulan')
-      ? parseInt(searchParams.get('bulan')!)
-      : new Date().getMonth() + 1;
-    const tahun = searchParams.get('tahun')
-      ? parseInt(searchParams.get('tahun')!)
-      : new Date().getFullYear();
+
+    // If month/year not provided, find the latest month with data
+    let bulan: number;
+    let tahun: number;
+
+    if (searchParams.get('bulan') && searchParams.get('tahun')) {
+      bulan = parseInt(searchParams.get('bulan')!);
+      tahun = parseInt(searchParams.get('tahun')!);
+    } else {
+      const latest = await getLatestDataMonth(puskesmasId);
+      if (latest) {
+        bulan = latest.bulan;
+        tahun = latest.tahun;
+      } else {
+        // Fallback to current date if no data found
+        bulan = new Date().getMonth() + 1;
+        tahun = new Date().getFullYear();
+      }
+    }
 
     // Calculate date range for kunjunganBySiklusHidup
     const startDate = new Date(tahun, bulan - 1, 1);

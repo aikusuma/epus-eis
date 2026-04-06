@@ -53,7 +53,7 @@ export function BarGraph() {
       total: item.kunjungan || 0,
       bpjs: item.bpjs || Math.round((item.kunjungan || 0) * 0.65),
       umum: item.umum || Math.round((item.kunjungan || 0) * 0.35)
-    }));
+    })) as Array<{ bulan: string; total: number; bpjs: number; umum: number }>;
   }, [data]);
 
   const [isClient, setIsClient] = React.useState(false);

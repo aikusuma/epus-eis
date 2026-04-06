@@ -7,16 +7,24 @@ export async function proxy(request: NextRequest) {
   // Public routes that don't require auth
   const publicRoutes = ['/login', '/api/auth/login'];
 
+  // Webhook endpoints use HMAC signature auth, not JWT
+  const webhookRoutes = [
+    '/api/eis/klaster1',
+    '/api/eis/klaster2',
+    '/api/eis/klaster3',
+    '/api/eis/klaster4',
+    '/api/eis/lintas-klaster'
+  ];
+  if (request.method === 'POST' && webhookRoutes.includes(pathname)) {
+    return NextResponse.next();
+  }
+
   if (publicRoutes.some((route) => pathname.startsWith(route))) {
     return NextResponse.next();
   }
 
   // Check auth for dashboard and API routes
-  if (
-    pathname.startsWith('/dashboard') ||
-    pathname.startsWith('/api/eis') ||
-    pathname.startsWith('/api/ingest')
-  ) {
+  if (pathname.startsWith('/dashboard') || pathname.startsWith('/api/eis')) {
     const token = request.cookies.get('auth_token')?.value;
 
     if (!token) {
@@ -56,5 +64,5 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/dashboard/:path*', '/api/eis/:path*', '/api/ingest/:path*']
+  matcher: ['/dashboard/:path*', '/api/eis/:path*']
 };

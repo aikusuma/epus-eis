@@ -291,7 +291,9 @@ export default function ProfileViewPage() {
         confirmPassword: values.confirmPassword || undefined
       });
       if (!parsed.success) {
-        toast.error(parsed.error.errors[0]?.message ?? 'Validasi gagal');
+        const flat = parsed.error.flatten();
+        const firstFieldError = Object.values(flat.fieldErrors)[0]?.[0];
+        toast.error(firstFieldError || 'Validasi gagal');
         return;
       }
       const payload = parsed.data;
@@ -313,7 +315,9 @@ export default function ProfileViewPage() {
     } else {
       const parsed = createUserSchema.safeParse(basePayload);
       if (!parsed.success) {
-        toast.error(parsed.error.errors[0]?.message ?? 'Validasi gagal');
+        const flat = parsed.error.flatten();
+        const firstFieldError = Object.values(flat.fieldErrors)[0]?.[0];
+        toast.error(firstFieldError || 'Validasi gagal');
         return;
       }
       const res = await fetch('/api/users', {

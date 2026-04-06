@@ -1,1 +1,2 @@
+unset DATABASE_URL
 bun run build

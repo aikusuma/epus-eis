@@ -1,6 +1,11 @@
 import { PrismaClient } from '@prisma/client';
+import { PrismaLibSql } from '@prisma/adapter-libsql';
 
-const prisma = new PrismaClient();
+const adapter = new PrismaLibSql({
+  url: process.env.DATABASE_URL!,
+  authToken: process.env.TURSO_AUTH_TOKEN
+});
+const prisma = new PrismaClient({ adapter });
 
 // Helper function to generate random integer between min and max
 const randInt = (min: number, max: number) =>

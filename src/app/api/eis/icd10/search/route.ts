@@ -30,10 +30,7 @@ export async function GET(req: NextRequest) {
     const where: any = {};
 
     if (q.length >= 2) {
-      where.OR = [
-        { code: { contains: q, mode: 'insensitive' } },
-        { display: { contains: q, mode: 'insensitive' } }
-      ];
+      where.OR = [{ code: { contains: q } }, { display: { contains: q } }];
     }
 
     // Query ICD-10 from Postgres

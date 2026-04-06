@@ -6,7 +6,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
@@ -183,7 +183,7 @@ model IngestionLog {
   id          String   @id @default(cuid())
   eventType   String   @map("event_type") // 'kunjungan', 'diagnosis', 'program'
   puskesmasId String   @map("puskesmas_id")
-  payload     Json     // Raw JSON payload
+  payload     String   // Raw JSON payload (serialized)
   status      String   @default("pending") // 'pending', 'processed', 'failed'
   errorMsg    String?  @map("error_msg")
   processedAt DateTime? @map("processed_at")
@@ -205,7 +205,7 @@ model AuditLog {
   action     String   // 'login', 'logout', 'view_dashboard', 'export_report', etc.
   resource   String?  // 'dashboard', 'puskesmas', 'report', etc.
   resourceId String?  @map("resource_id")
-  details    Json?    // Additional details
+  details    String?  // Additional details (serialized JSON)
   ipAddress  String?  @map("ip_address")
   userAgent  String?  @map("user_agent")
   createdAt  DateTime @default(now()) @map("created_at")

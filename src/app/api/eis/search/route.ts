@@ -7,10 +7,7 @@ const searchIcd10Cached = unstable_cache(
   async (query: string, limit: number) => {
     return prisma.icd10.findMany({
       where: {
-        OR: [
-          { code: { contains: query, mode: 'insensitive' } },
-          { display: { contains: query, mode: 'insensitive' } }
-        ]
+        OR: [{ code: { contains: query } }, { display: { contains: query } }]
       },
       include: {
         _count: {
@@ -296,7 +293,7 @@ export async function GET(req: NextRequest) {
     if (type === 'by-code' && code) {
       const icd10 = await prisma.icd10.findFirst({
         where: {
-          code: { equals: code, mode: 'insensitive' }
+          code: { equals: code }
         },
         include: {
           _count: { select: { diagnoses: true } }

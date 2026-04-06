@@ -196,11 +196,11 @@ export async function POST(req: NextRequest) {
       data: {
         eventType: 'klaster1',
         puskesmasId: puskesmas.id,
-        payload: {
+        payload: JSON.stringify({
           ...data,
           puskesmasId: puskesmas.id,
           puskesmasKode: puskesmas.kodePuskesmas
-        } as unknown as object,
+        }),
         status: 'processing'
       }
     });

@@ -1,11 +1,9 @@
 import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import { db } from '@/lib/db';
 
 export async function GET() {
   try {
-    const puskesmas = await prisma.puskesmas.findMany({
+    const puskesmas = await db.puskesmas.findMany({
       orderBy: { namaPuskesmas: 'asc' },
       select: {
         id: true,

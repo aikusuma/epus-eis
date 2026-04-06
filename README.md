@@ -8,8 +8,7 @@ Executive Information System (EIS) untuk Dinas Kesehatan Kabupaten Brebes. Siste
 - **Language** - [TypeScript](https://www.typescriptlang.org)
 - **Styling** - [Tailwind CSS v4](https://tailwindcss.com)
 - **Components** - [Shadcn-ui](https://ui.shadcn.com)
-- **Database (Operational)** - [PostgreSQL 16](https://www.postgresql.org/) + [Prisma](https://www.prisma.io/)
-- **Database (Analytics)** - [ClickHouse](https://clickhouse.com/)
+- **Database** - [PostgreSQL 16](https://www.postgresql.org/) + [Prisma](https://www.prisma.io/)
 - **Authentication** - JWT with [jose](https://github.com/panva/jose)
 - **Schema Validations** - [Zod](https://zod.dev)
 - **Charts** - [Recharts](https://recharts.org/)
@@ -20,12 +19,8 @@ Executive Information System (EIS) untuk Dinas Kesehatan Kabupaten Brebes. Siste
 ## Features
 
 - 🏥 **Dashboard EIS** - Ringkasan KPI kesehatan (kunjungan, penyakit, puskesmas)
-- 📊 **Analitik ICD-10** - Top penyakit, distribusi, tren berdasarkan kode ICD-10
-- 🏢 **Per-Puskesmas** - Detail analytics per puskesmas
 - 🔐 **ACL (Access Control List)** - Role-based access control (Kepala Dinkes, Kabid, Subkor, Kepala Puskesmas, Staf)
-- 📈 **Visualisasi** - Bar chart, pie chart, area chart, tren bulanan
 - 🌗 **Dark/Light mode** - Theme toggle
-- ⚡ **Fast Analytics** - ClickHouse untuk query agregasi cepat
 
 ## Getting Started
 
@@ -83,8 +78,7 @@ src/
 ├── app/
 │   ├── api/
 │   │   ├── auth/           # Authentication endpoints
-│   │   ├── eis/            # EIS analytics endpoints
-│   │   └── ingest/         # Data ingestion from e-Puskesmas
+│   │   └── eis/            # EIS analytics endpoints
 │   ├── dashboard/          # Dashboard pages
 │   │   ├── overview/       # Main dashboard with KPIs
 │   │   └── profile/        # User profile
@@ -96,16 +90,13 @@ src/
 │   └── overview/           # Dashboard charts & components
 ├── lib/
 │   ├── db.ts               # Prisma client
-│   ├── clickhouse.ts       # ClickHouse client
 │   ├── auth.ts             # JWT utilities
 │   └── acl.ts              # ACL middleware
 ├── types/
 │   └── acl.ts              # ACL types & constants
-├── prisma/
-│   ├── schema.prisma       # PostgreSQL schema
-│   └── seed.ts             # Initial data seeding
-└── docker/
-    └── clickhouse/         # ClickHouse init scripts
+└── prisma/
+    ├── schema.prisma       # PostgreSQL schema
+    └── seed.ts             # Initial data seeding
 ```
 
 ## API Endpoints
@@ -114,17 +105,6 @@ src/
 - `POST /api/auth/login` - Login
 - `POST /api/auth/logout` - Logout
 - `GET /api/auth/me` - Get current user
-
-### EIS Analytics
-- `GET /api/eis/overview` - Dashboard KPIs
-- `GET /api/eis/disease/top` - Top diseases by visits
-- `GET /api/eis/disease/distribution` - Disease distribution
-- `GET /api/eis/puskesmas/:id` - Puskesmas detail
-- `GET /api/eis/icd10/search` - Search ICD-10 codes
-
-### Data Ingestion
-- `POST /api/ingest/kunjungan` - Ingest visit data from e-Puskesmas
-- `GET /api/ingest/kunjungan` - Ingestion history
 
 ## User Roles
 

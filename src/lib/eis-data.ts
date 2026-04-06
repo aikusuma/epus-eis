@@ -4,6 +4,40 @@ import db from './db';
 // Alias for easier usage
 const prisma = db;
 
+// Helper: Get the latest month/year that has data
+export async function getLatestDataMonth(puskesmasId?: string): Promise<{
+  bulan: number;
+  tahun: number;
+} | null> {
+  const where: any = {};
+  if (puskesmasId && puskesmasId !== 'all') {
+    where.puskesmasId = puskesmasId;
+  }
+
+  const latest = await prisma.overviewSummary.findFirst({
+    where,
+    orderBy: [{ tahun: 'desc' }, { bulan: 'desc' }],
+    select: { bulan: true, tahun: true }
+  });
+
+  if (latest) {
+    return { bulan: latest.bulan, tahun: latest.tahun };
+  }
+
+  // Fallback: check other tables
+  const topDiagnosa = await prisma.topDiagnosa.findFirst({
+    where: puskesmasId && puskesmasId !== 'all' ? { puskesmasId } : {},
+    orderBy: [{ tahun: 'desc' }, { bulan: 'desc' }],
+    select: { bulan: true, tahun: true }
+  });
+
+  if (topDiagnosa) {
+    return { bulan: topDiagnosa.bulan, tahun: topDiagnosa.tahun };
+  }
+
+  return null;
+}
+
 // Cache tags for revalidation
 export const CACHE_TAGS = {
   klaster1: 'klaster1',
