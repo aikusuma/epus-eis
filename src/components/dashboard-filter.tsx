@@ -160,8 +160,31 @@ export function DashboardFilter({
       try {
         const response = await fetch('/api/puskesmas');
         if (response.ok) {
-          const data = await response.json();
-          setPuskesmasList(data);
+          const result = await response.json();
+          // Handle new format { data: [...], meta: { isLocked, puskesmasId } }
+          const puskesmasData = result.data || result;
+          const meta = result.meta || {};
+
+          setPuskesmasList(puskesmasData);
+
+          // If backend says user is locked, set filter immediately
+          if (meta.isLocked && meta.puskesmasId) {
+            // Also find the puskesmas name from the list
+            const myPkm = puskesmasData.find(
+              (p: Puskesmas) => p.id === meta.puskesmasId
+            );
+            setUserContext((prev) => ({
+              roleCode: prev?.roleCode || '',
+              puskesmasId: meta.puskesmasId,
+              puskesmasName:
+                myPkm?.namaPuskesmas || prev?.puskesmasName || 'Puskesmas Anda',
+              isLocked: true
+            }));
+            setFilters((prev) => ({
+              ...prev,
+              puskesmasId: meta.puskesmasId
+            }));
+          }
         }
       } catch (error) {
         console.error('Error fetching puskesmas:', error);
@@ -367,23 +390,26 @@ export function DashboardFilter({
               <CommandList>
                 <CommandEmpty>Tidak ditemukan.</CommandEmpty>
                 <CommandGroup>
-                  <CommandItem
-                    value='all'
-                    onSelect={() => {
-                      handleFilterChange('puskesmasId', 'all');
-                      setPuskesmasPopoverOpen(false);
-                    }}
-                  >
-                    <IconCheck
-                      className={cn(
-                        'mr-2 h-4 w-4',
-                        filters.puskesmasId === 'all'
-                          ? 'opacity-100'
-                          : 'opacity-0'
-                      )}
-                    />
-                    Semua Puskesmas
-                  </CommandItem>
+                  {/* Only show "Semua Puskesmas" if user is NOT locked */}
+                  {!userContext?.isLocked && puskesmasList.length > 1 && (
+                    <CommandItem
+                      value='all'
+                      onSelect={() => {
+                        handleFilterChange('puskesmasId', 'all');
+                        setPuskesmasPopoverOpen(false);
+                      }}
+                    >
+                      <IconCheck
+                        className={cn(
+                          'mr-2 h-4 w-4',
+                          filters.puskesmasId === 'all'
+                            ? 'opacity-100'
+                            : 'opacity-0'
+                        )}
+                      />
+                      Semua Puskesmas
+                    </CommandItem>
+                  )}
                   {puskesmasList.map((pkm) => (
                     <CommandItem
                       key={pkm.id}
