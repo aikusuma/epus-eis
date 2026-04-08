@@ -163,7 +163,7 @@ export const getStokObat = unstable_cache(
     });
 
     return data.map((item: any) => ({
-      nama: item.namaObat,
+      namaObat: item.namaObat,
       satuan: item.satuan,
       stok: item._sum.stok || 0,
       pemakaian: item._sum.pemakaian || 0
