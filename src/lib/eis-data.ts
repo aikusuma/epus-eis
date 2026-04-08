@@ -354,7 +354,7 @@ export const getImunisasi = unstable_cache(
       capaian: item._sum.capaian || 0
     }));
   },
-  ['imunisasi'],
+  ['imunisasi-v2'],
   { tags: [CACHE_TAGS.klaster2], revalidate: CACHE_DURATION.medium }
 );
 
