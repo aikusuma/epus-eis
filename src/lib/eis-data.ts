@@ -339,7 +339,7 @@ export const getImunisasi = unstable_cache(
     };
 
     const data = await prisma.imunisasi.groupBy({
-      by: ['jenisImunisasi'],
+      by: ['jenisImunisasi', 'kategori'],
       where,
       _sum: {
         sasaran: true,
@@ -349,7 +349,7 @@ export const getImunisasi = unstable_cache(
 
     return data.map((item: any) => ({
       jenisImunisasi: item.jenisImunisasi,
-      kategori: item.kategori || kategori,
+      kategori: item.kategori,
       sasaran: item._sum.sasaran || 0,
       capaian: item._sum.capaian || 0
     }));
