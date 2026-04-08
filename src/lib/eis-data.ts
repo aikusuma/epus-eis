@@ -348,7 +348,8 @@ export const getImunisasi = unstable_cache(
     });
 
     return data.map((item: any) => ({
-      jenis: item.jenisImunisasi,
+      jenisImunisasi: item.jenisImunisasi,
+      kategori: item.kategori || kategori,
       sasaran: item._sum.sasaran || 0,
       capaian: item._sum.capaian || 0
     }));

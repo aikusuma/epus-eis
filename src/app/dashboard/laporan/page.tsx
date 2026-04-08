@@ -384,19 +384,18 @@ export default function LaporanPage() {
             { key: 'bed_total', header: 'Total Bed' },
             { key: 'bor', header: 'BOR (%)' }
           ],
-          tableData: Array.isArray(lintasData?.rawatInap)
-            ? lintasData.rawatInap.map((r: any, i: number) => ({
+          tableData: Array.isArray(lintasData?.rawatInap?.data)
+            ? lintasData.rawatInap.data.map((r: any, i: number) => ({
                 no: i + 1,
                 tanggal: r.tanggal
                   ? new Date(r.tanggal).toLocaleDateString('id-ID')
                   : '-',
                 masuk: r.pasienMasuk || 0,
                 keluar: r.pasienKeluar || 0,
-                bed_terisi: r.bedTerisi || 0,
-                bed_total: r.bedTotal || 0,
-                bor: r.bedTotal
-                  ? Math.round((r.bedTerisi / r.bedTotal) * 100)
-                  : 0
+                bed_terisi: r.bedTerpakai || r.bedTerisi || 0,
+                bed_total:
+                  (r.bedTerpakai || r.bedTerisi || 0) + (r.bedKosong || 0),
+                bor: r.bor || 0
               }))
             : []
         };
