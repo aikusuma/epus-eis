@@ -15,7 +15,6 @@ import {
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { DottedGlowBackground } from '@/components/ui/dotted-glow-background';
 
 const APP_NAME = process.env.NEXT_PUBLIC_APP_NAME || 'EIS Dinkes';
 const DINKES_NAME = process.env.NEXT_PUBLIC_DINKES_NAME || 'Dinas Kesehatan';
@@ -59,35 +58,15 @@ export default function LoginPage() {
   return (
     <div className='relative grid min-h-screen lg:grid-cols-2'>
       {/* Left panel */}
-      <div className='relative hidden overflow-hidden border-r bg-zinc-950 text-zinc-50 lg:flex lg:flex-col lg:p-10'>
-        <div
-          className='absolute inset-0 opacity-50'
-          style={{
-            backgroundImage:
-              'radial-gradient(circle at 20% 20%, rgba(255,255,255,0.1), transparent 25%), radial-gradient(circle at 80% 0%, rgba(255,255,255,0.08), transparent 25%), radial-gradient(circle at 60% 70%, rgba(255,255,255,0.06), transparent 30%)'
-          }}
+      <div className='relative hidden overflow-hidden border-r text-zinc-50 lg:flex lg:flex-col lg:p-10'>
+        <Image
+          src='/bg-teal.jpg'
+          alt='Background'
+          fill
+          className='pointer-events-none object-cover'
+          priority
         />
-        <div
-          className='absolute inset-0 opacity-15'
-          style={{
-            backgroundImage:
-              'linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px)',
-            backgroundSize: '48px 48px'
-          }}
-        />
-        <DottedGlowBackground
-          className='pointer-events-none absolute inset-0 opacity-55 mix-blend-screen'
-          gap={12}
-          radius={2}
-          speedMin={0.35}
-          speedMax={1.2}
-          speedScale={1}
-          backgroundOpacity={0}
-          colorLightVar='--color-neutral-500'
-          glowColorLightVar='--color-neutral-600'
-          colorDarkVar='--color-neutral-500'
-          glowColorDarkVar='--color-sky-800'
-        />
+        <div className='pointer-events-none absolute inset-0 bg-black/20' />
 
         <div className='relative z-10 flex flex-1 items-center justify-center'>
           <div className='flex flex-col items-center space-y-2 text-center'>
