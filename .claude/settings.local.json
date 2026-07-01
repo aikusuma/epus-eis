@@ -1,0 +1,24 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(curl:*)",
+      "Bash(bun add:*)",
+      "Bash(bunx prisma:*)",
+      "Bash(DATABASE_URL=\"libsql://eisv2-subagabillingsystem.aws-ap-south-1.turso.io\" TURSO_AUTH_TOKEN=\"eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJhIjoicnciLCJpYXQiOjE3NzU0Nzg2MzQsImlkIjoiMDE5ZDYyYzUtY2QwMS03MDlhLTk4MTQtY2Y3YTg3MjhlYTkwIiwicmlkIjoiOGRmNTQxM2UtM2M1NC00YmE3LTk3MTctZmQ4ZWM1MjA3ODU1In0.qVUtmYaXgtGjbynhyCEdTz6Z9qWuZv_nSf8ErTezt36gv1E6FF34xIR1GgxPjF4lEmo25C1muJscXfXQbqyhDw\" bunx prisma:*)",
+      "Bash(turso --version)",
+      "Bash(DATABASE_URL=\"file:./prisma/turso-push.db\" bunx prisma:*)",
+      "Bash(TURSO_AUTH_TOKEN=\"eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJhIjoicnciLCJpYXQiOjE3NzU0Nzg2MzQsImlkIjoiMDE5ZDYyYzUtY2QwMS03MDlhLTk4MTQtY2Y3YTg3MjhlYTkwIiwicmlkIjoiOGRmNTQxM2UtM2M1NC00YmE3LTk3MTctZmQ4ZWM1MjA3ODU1In0.qVUtmYaXgtGjbynhyCEdTz6Z9qWuZv_nSf8ErTezt36gv1E6FF34xIR1GgxPjF4lEmo25C1muJscXfXQbqyhDw\" bun run:*)",
+      "Bash(TURSO_AUTH_TOKEN=\"eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJhIjoicnciLCJpYXQiOjE3NzU0Nzg2MzQsImlkIjoiMDE5ZDYyYzUtY2QwMS03MDlhLTk4MTQtY2Y3YTg3MjhlYTkwIiwicmlkIjoiOGRmNTQxM2UtM2M1NC00YmE3LTk3MTctZmQ4ZWM1MjA3ODU1In0.qVUtmYaXgtGjbynhyCEdTz6Z9qWuZv_nSf8ErTezt36gv1E6FF34xIR1GgxPjF4lEmo25C1muJscXfXQbqyhDw\" bun:*)",
+      "Bash(bun run:*)",
+      "Bash(node:*)",
+      "Bash(DATABASE_URL=\"libsql://eisv2-subagabillingsystem.aws-ap-south-1.turso.io\" TURSO_AUTH_TOKEN=\"eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJhIjoicnciLCJpYXQiOjE3NzU0Nzg2MzQsImlkIjoiMDE5ZDYyYzUtY2QwMS03MDlhLTk4MTQtY2Y3YTg3MjhlYTkwIiwicmlkIjoiOGRmNTQxM2UtM2M1NC00YmE3LTk3MTctZmQ4ZWM1MjA3ODU1In0.qVUtmYaXgtGjbynhyCEdTz6Z9qWuZv_nSf8ErTezt36gv1E6FF34xIR1GgxPjF4lEmo25C1muJscXfXQbqyhDw\" bun run:*)",
+      "Bash(bun:*)",
+      "Bash(kill 13687)",
+      "Bash(2>&1)",
+      "Bash(pkill -f \"next dev\")",
+      "Bash(kill -9 15206)",
+      "Bash(pkill -9 -f \"next\")",
+      "Bash(echo \"Server started, pid: $!\")"
+    ]
+  }
+}

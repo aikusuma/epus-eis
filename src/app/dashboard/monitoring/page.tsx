@@ -210,7 +210,7 @@ export default function MonitoringPage() {
           </div>
           <Badge variant='outline' className='flex items-center gap-1'>
             <IconMapPin className='h-3.5 w-3.5' />
-            Kabupaten Brebes
+            {process.env.NEXT_PUBLIC_KABUPATEN || 'Kabupaten'}
           </Badge>
         </div>
 
@@ -278,7 +278,8 @@ export default function MonitoringPage() {
               Sebaran Data Pasien Berdasarkan Siklus Hidup
             </CardTitle>
             <CardDescription>
-              Peta sebaran pasien per kelurahan/desa di Kabupaten Brebes
+              Peta sebaran pasien per kelurahan/desa di{' '}
+              {process.env.NEXT_PUBLIC_KABUPATEN || 'Kabupaten'}
             </CardDescription>
           </CardHeader>
           <CardContent>

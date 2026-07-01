@@ -33,7 +33,7 @@ export default function OverViewLayout({
 
           <div className='flex items-center justify-between space-y-2'>
             <h2 className='text-2xl font-bold tracking-tight'>
-              Dashboard EIS Dinkes Brebes
+              Dashboard {process.env.NEXT_PUBLIC_APP_NAME || 'EIS Dinkes'}
             </h2>
           </div>
 

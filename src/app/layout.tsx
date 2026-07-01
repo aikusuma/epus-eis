@@ -17,8 +17,8 @@ const META_THEME_COLORS = {
 };
 
 export const metadata: Metadata = {
-  title: 'EIS Dinkes Brebes',
-  description: 'Executive Information System Dinas Kesehatan Kabupaten Brebes',
+  title: process.env.NEXT_PUBLIC_APP_NAME || 'EIS Dinkes',
+  description: `Executive Information System ${process.env.NEXT_PUBLIC_DINKES_NAME || 'Dinas Kesehatan'}`,
   robots: {
     index: false,
     follow: false,
@@ -33,7 +33,7 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
-    title: 'EIS Dinkes'
+    title: process.env.NEXT_PUBLIC_APP_NAME || 'EIS Dinkes'
   },
   formatDetection: {
     telephone: false
@@ -65,7 +65,10 @@ export default async function RootLayout({
         <meta name='bingbot' content='noindex, nofollow' />
         <meta name='apple-mobile-web-app-capable' content='yes' />
         <meta name='apple-mobile-web-app-status-bar-style' content='default' />
-        <meta name='apple-mobile-web-app-title' content='EIS Dinkes' />
+        <meta
+          name='apple-mobile-web-app-title'
+          content={process.env.NEXT_PUBLIC_APP_NAME || 'EIS Dinkes'}
+        />
         <link rel='apple-touch-icon' href='/logo.png' />
         <script
           dangerouslySetInnerHTML={{

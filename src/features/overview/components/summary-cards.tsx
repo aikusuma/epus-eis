@@ -217,7 +217,8 @@ export function SummaryCards({ filters: propFilters }: SummaryCardsProps) {
             Semua puskesmas aktif <IconTrendingUp className='size-4' />
           </div>
           <div className='text-muted-foreground'>
-            {summaryData.puskesmasAktif} puskesmas di Kab. Brebes
+            {summaryData.puskesmasAktif} puskesmas di{' '}
+            {process.env.NEXT_PUBLIC_KABUPATEN || 'Kabupaten'}
           </div>
         </CardFooter>
       </Card>
