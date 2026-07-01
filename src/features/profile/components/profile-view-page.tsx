@@ -655,7 +655,10 @@ export default function ProfileViewPage() {
                   <FormItem>
                     <FormLabel>Email</FormLabel>
                     <FormControl>
-                      <Input placeholder='email@dinkes.go.id' {...field} />
+                      <Input
+                        placeholder={`email@${process.env.NEXT_PUBLIC_EMAIL_DOMAIN || 'dinkes.go.id'}`}
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -719,7 +722,11 @@ export default function ProfileViewPage() {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value='none'>Semua / Dinkes</SelectItem>
+                        <SelectItem value='none'>
+                          Semua /{' '}
+                          {process.env.NEXT_PUBLIC_DINKES_NAME ||
+                            'Dinas Kesehatan'}
+                        </SelectItem>
                         {puskesmasOptions.map((p: any) => (
                           <SelectItem key={p.id} value={p.id}>
                             {p.nama}

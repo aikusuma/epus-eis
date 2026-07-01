@@ -126,7 +126,7 @@ export default function LoginPage() {
             <CardHeader>
               <CardTitle>Autentikasi</CardTitle>
               <CardDescription>
-                Masuk dengan kredensial internal Dinkes.
+                Masuk dengan kredensial internal {DINKES_NAME}.
               </CardDescription>
             </CardHeader>
             <CardContent>
