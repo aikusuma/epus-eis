@@ -121,4 +121,5 @@ src/
 MIT
 
 
-<!-- latest-version --> Latest Version: dev-eb80925
+
+<!-- latest-version --> Latest Version: dev-a7a2948
