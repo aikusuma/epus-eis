@@ -119,3 +119,5 @@ src/
 ## License
 
 MIT
+
+<!-- latest-version --> Latest Version: dev-2744da8
