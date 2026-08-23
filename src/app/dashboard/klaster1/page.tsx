@@ -163,7 +163,7 @@ export default function Klaster1Page() {
   const stokObatData = useMemo(() => {
     if (!data?.obat) return [];
     return data.obat.slice(0, 8).map((item: any) => ({
-      nama: item.nama,
+      nama: item.nama || item.namaObat || '',
       stok: item.stok,
       pemakaian: item.pemakaian,
       satuan: item.satuan
@@ -506,9 +506,15 @@ export default function Klaster1Page() {
                             cx='50%'
                             cy='50%'
                             labelLine={false}
-                            label={({ nama, percent }) =>
-                              `${nama.substring(0, 10)}...: ${(percent * 100).toFixed(0)}%`
-                            }
+                            label={({ nama, name, percent }: any) => {
+                              const labelName = nama || name || '';
+                              const pct =
+                                typeof percent === 'number'
+                                  ? (percent * 100).toFixed(0)
+                                  : '0';
+                              if (!labelName) return `${pct}%`;
+                              return `${labelName.length > 10 ? `${labelName.substring(0, 10)}...` : labelName}: ${pct}%`;
+                            }}
                             outerRadius={100}
                             fill='#8884d8'
                             dataKey='stok'
