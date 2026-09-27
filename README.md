@@ -125,4 +125,5 @@ MIT
 
 
 
-<!-- latest-version --> Latest Version: dev-8633ade
+
+<!-- latest-version --> Latest Version: dev-433e4ea
