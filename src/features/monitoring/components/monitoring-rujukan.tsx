@@ -163,7 +163,7 @@ export default function MonitoringRujukanSection() {
   }, [startDate, endDate, selectedPuskesmas]);
 
   return (
-    <div className='space-y-6'>
+    <div className='max-w-full min-w-0 space-y-6 overflow-x-hidden'>
       {/* Header Banner */}
       <div className='flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between'>
         <div className='flex items-center space-x-3'>
@@ -187,8 +187,8 @@ export default function MonitoringRujukanSection() {
       {/* Filter Section */}
       <Card className='border-slate-200/70 shadow-xs'>
         <CardContent className='p-4 md:p-5'>
-          <div className='flex flex-col gap-4 md:flex-row md:items-end'>
-            <div className='w-full md:w-1/4'>
+          <div className='grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 items-end'>
+            <div>
               <label className='text-muted-foreground mb-2 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider'>
                 <IconCalendar className='h-4 w-4 text-teal-600' /> Tanggal Mulai
               </label>
@@ -200,7 +200,7 @@ export default function MonitoringRujukanSection() {
               />
             </div>
 
-            <div className='w-full md:w-1/4'>
+            <div>
               <label className='text-muted-foreground mb-2 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider'>
                 <IconCalendar className='h-4 w-4 text-teal-600' /> Tanggal Akhir
               </label>
@@ -212,7 +212,7 @@ export default function MonitoringRujukanSection() {
               />
             </div>
 
-            <div className='w-full md:w-1/2'>
+            <div className='sm:col-span-2'>
               <label className='text-muted-foreground mb-2 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider'>
                 <IconFilter className='h-4 w-4 text-teal-600' /> Filter Puskesmas
               </label>
@@ -251,7 +251,7 @@ export default function MonitoringRujukanSection() {
             </CardContent>
           </Card>
         ) : (
-          <div className='grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5'>
+          <div className='grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5'>
             {top5Cards.map((card, idx) => (
               <Card
                 key={idx}

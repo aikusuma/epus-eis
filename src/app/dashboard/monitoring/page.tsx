@@ -206,7 +206,7 @@ export default function MonitoringPage() {
 
   return (
     <PageContainer>
-      <div className='space-y-6'>
+      <div className='max-w-full min-w-0 space-y-6'>
         <DashboardFilter onFilterChange={handleFilterChange} />
 
         <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
@@ -239,10 +239,6 @@ export default function MonitoringPage() {
                 Monitoring Rujukan
               </Button>
             </div>
-            <Badge variant='outline' className='hidden sm:flex items-center gap-1'>
-              <IconMapPin className='h-3.5 w-3.5' />
-              {activeView === 'rujukan' ? 'Kabupaten Kuningan' : (process.env.NEXT_PUBLIC_KABUPATEN || 'Kabupaten')}
-            </Badge>
           </div>
         </div>
 
@@ -433,10 +429,10 @@ export default function MonitoringPage() {
                           direction='top'
                           offset={[0, -radius]}
                           opacity={0.95}
-                          permanent={true}
+                          permanent={false}
                         >
                           <span className='text-xs font-semibold'>
-                            {lokasi.desa} ({total})
+                            {lokasi.desa} ({total} pasien)
                           </span>
                         </Tooltip>
                         <Popup>
