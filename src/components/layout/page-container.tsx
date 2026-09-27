@@ -51,8 +51,8 @@ export default function PageContainer({
   const content = isloading ? <PageSkeleton /> : children;
 
   return scrollable ? (
-    <ScrollArea className='h-[calc(100dvh-52px)] w-full max-w-full min-w-0 overflow-x-hidden'>
-      <div className='flex w-full max-w-full min-w-0 flex-1 flex-col p-4 md:px-6 overflow-x-hidden'>
+    <ScrollArea className='h-[calc(100dvh-52px)] w-full'>
+      <div className='flex w-full min-w-0 flex-1 flex-col p-4 md:px-6'>
         <div className='mb-4 flex items-start justify-between'>
           <Heading
             title={pageTitle ?? ''}
@@ -64,7 +64,7 @@ export default function PageContainer({
       </div>
     </ScrollArea>
   ) : (
-    <div className='flex w-full max-w-full min-w-0 flex-1 flex-col p-4 md:px-6 overflow-x-hidden'>
+    <div className='flex flex-1 flex-col p-4 md:px-6'>
       <div className='mb-4 flex items-start justify-between'>
         <Heading title={pageTitle ?? ''} description={pageDescription ?? ''} />
         {pageHeaderAction && <div>{pageHeaderAction}</div>}
