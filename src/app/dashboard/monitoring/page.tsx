@@ -53,44 +53,15 @@ import { useTabFromUrl } from '@/hooks/use-tab-from-url';
 import { useMonitoringData, FilterParams } from '@/hooks/use-eis-data';
 import { Skeleton } from '@/components/ui/skeleton';
 
-const KUNINGAN_PUSKESMAS_LIST = [
-  'Puskesmas Darma',
-  'Puskesmas Kadugede',
-  'Puskesmas Nusaherang',
-  'Puskesmas Ciniru',
-  'Puskesmas Hantara',
-  'Puskesmas Selajambe Kuningan',
-  'Puskesmas Subang',
-  'Puskesmas Cilebak',
-  'Puskesmas Karangkencana',
-  'Puskesmas Cibingbin',
-  'Puskesmas Cibeureum',
-  'Puskesmas Ciwaru',
-  'Puskesmas Luragung',
-  'Puskesmas Cimahi',
-  'Puskesmas Cidahu Kuningan',
-  'Puskesmas Kalimanggis',
-  'Puskesmas Ciawigebang Kuningan',
-  'Puskesmas Cihaur',
-  'Puskesmas Cipicung',
-  'Puskesmas Mekarwangi',
-  'Puskesmas Maleber',
-  'Puskesmas Garawangi',
-  'Puskesmas Sindangagung',
-  'Puskesmas Kuningan',
-  'Puskesmas Windu Sengkahan',
-  'Puskesmas Lamepayung',
-  'Puskesmas Suka Mulya Kuningan',
-  'Puskesmas Kramatmulya',
-  'Puskesmas Jalaksana',
-  'Puskesmas Japara',
+const PUSKESMAS_LIST = [
+  'Puskesmas Ciawigebang',
   'Puskesmas Cilimus',
-  'Puskesmas Linggarjati',
-  'Puskesmas Manggari',
-  'Puskesmas Cigandamekar',
-  'Puskesmas Mandirancan',
-  'Puskesmas Pancalang',
-  'Puskesmas Pasawahan Kuningan'
+  'Puskesmas Kadugede',
+  'Puskesmas Luragung',
+  'Puskesmas Kuningan',
+  'Puskesmas Kramatmulya',
+  'Puskesmas Darma',
+  'Puskesmas Mandirancan'
 ];
 
 const RS_LIST = [
@@ -98,9 +69,7 @@ const RS_LIST = [
   'RSUD Linggajati',
   'RS Sekar Kamulyan',
   'RS Juanda',
-  'RS KMC',
-  'RS Wijaya Kusumah',
-  'RS Permata Kuningan'
+  'RS KMC'
 ];
 
 const POLI_LIST = [
@@ -113,25 +82,33 @@ const POLI_LIST = [
   'Poli Jantung'
 ];
 
+// Mulberry32 deterministic PRNG generator untuk variasi data rujukan yang konsisten (SSR & Hydration safe)
+const mulberry32 = (seed: number) => {
+  return () => {
+    let t = (seed += 0x6d2b79f5);
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+};
+
+// Generate dummy data (500 records) simulating September 2026 data persis sesuai monitoring_rujukan_vertikal.tsx
 const generateMockRujukanData = () => {
+  const rand = mulberry32(20260927);
   const data = [];
   const baseDate = new Date('2026-09-01T00:00:00Z').getTime();
 
-  for (let i = 0; i < 600; i++) {
-    const randomOffset = Math.floor(((i * 7919) % 30) * 24 * 60 * 60 * 1000);
+  for (let i = 0; i < 500; i++) {
+    const randomOffset = Math.floor(rand() * 30 * 24 * 60 * 60 * 1000);
     const date = new Date(baseDate + randomOffset);
-    const pkmIndex = (i * 13) % KUNINGAN_PUSKESMAS_LIST.length;
-    const rsIndex = (i * 7) % RS_LIST.length;
-    const poliIndex = (i * 11) % POLI_LIST.length;
-    const jumlahPasien = ((i * 3) % 4) + 1;
 
     data.push({
       id: i + 1,
       tanggal: date.toISOString().split('T')[0],
-      puskesmas: KUNINGAN_PUSKESMAS_LIST[pkmIndex],
-      rumahSakit: RS_LIST[rsIndex],
-      poli: POLI_LIST[poliIndex],
-      jumlahPasien
+      puskesmas: PUSKESMAS_LIST[Math.floor(rand() * PUSKESMAS_LIST.length)],
+      rumahSakit: RS_LIST[Math.floor(rand() * RS_LIST.length)],
+      poli: POLI_LIST[Math.floor(rand() * POLI_LIST.length)],
+      jumlahPasien: Math.floor(rand() * 4) + 1 // 1 to 4 patients per referral batch
     });
   }
   return data;
@@ -447,10 +424,9 @@ export default function MonitoringPage() {
                       className='border-input bg-background focus:ring-primary/20 focus:border-primary w-full rounded-lg border px-3.5 py-2 text-sm font-medium transition-colors focus:ring-2 focus:outline-none'
                     >
                       <option value='Semua Puskesmas'>
-                        Semua Puskesmas Kab. Kuningan (
-                        {KUNINGAN_PUSKESMAS_LIST.length} Puskesmas)
+                        Semua Puskesmas Kab. Kuningan
                       </option>
-                      {KUNINGAN_PUSKESMAS_LIST.map((pkm) => (
+                      {PUSKESMAS_LIST.map((pkm) => (
                         <option key={pkm} value={pkm}>
                           {pkm}
                         </option>
