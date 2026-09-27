@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/card';
 import { CountUp } from '@/components/ui/count-up';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import PageContainer from '@/components/layout/page-container';
 import {
@@ -40,11 +41,13 @@ import {
   IconBabyCarriage,
   IconUser,
   IconFriends,
-  IconWheelchair
+  IconWheelchair,
+  IconShare2
 } from '@tabler/icons-react';
 import { useTabFromUrl } from '@/hooks/use-tab-from-url';
 import { useMonitoringData, FilterParams } from '@/hooks/use-eis-data';
 import { Skeleton } from '@/components/ui/skeleton';
+import MonitoringRujukanSection from '@/features/monitoring/components/monitoring-rujukan';
 
 // Dynamic import untuk Leaflet (harus client-side only)
 const MapContainer = dynamic(
@@ -62,6 +65,10 @@ const Marker = dynamic(
 const Popup = dynamic(() => import('react-leaflet').then((mod) => mod.Popup), {
   ssr: false
 });
+const Tooltip = dynamic(
+  () => import('react-leaflet').then((mod) => mod.Tooltip),
+  { ssr: false }
+);
 const CircleMarker = dynamic(
   () => import('react-leaflet').then((mod) => mod.CircleMarker),
   { ssr: false }
@@ -84,6 +91,7 @@ const COLORS = ['#ec4899', '#f97316', '#eab308', '#22c55e', '#6366f1'];
 
 export default function MonitoringPage() {
   const [mounted, setMounted] = useState(false);
+  const [activeView, setActiveView] = useState<'sebaran' | 'rujukan'>('sebaran');
   const [selectedFilter, setSelectedFilter] = useState<string>('semua');
   const [filters, setFilters] = useState<FilterParams>({});
   const { currentTab, setTab } = useTabFromUrl('diagnosa');
@@ -201,18 +209,47 @@ export default function MonitoringPage() {
       <div className='space-y-6'>
         <DashboardFilter onFilterChange={handleFilterChange} />
 
-        <div className='flex items-center justify-between'>
+        <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
           <div>
             <h2 className='text-2xl font-bold tracking-tight'>Monitoring</h2>
             <p className='text-muted-foreground'>
-              Sebaran data pasien dan statistik layanan kesehatan
+              {activeView === 'rujukan'
+                ? 'Monitoring rujukan faskes vertikal ke rumah sakit di Kabupaten Kuningan'
+                : 'Sebaran data pasien dan statistik layanan kesehatan'}
             </p>
           </div>
-          <Badge variant='outline' className='flex items-center gap-1'>
-            <IconMapPin className='h-3.5 w-3.5' />
-            {process.env.NEXT_PUBLIC_KABUPATEN || 'Kabupaten'}
-          </Badge>
+          <div className='flex items-center gap-2'>
+            <div className='bg-muted/70 inline-flex items-center rounded-lg p-1 border'>
+              <Button
+                variant={activeView === 'sebaran' ? 'default' : 'ghost'}
+                size='sm'
+                onClick={() => setActiveView('sebaran')}
+                className='h-8 gap-1.5 text-xs font-medium'
+              >
+                <IconMapPin className='h-3.5 w-3.5' />
+                Sebaran Pasien
+              </Button>
+              <Button
+                variant={activeView === 'rujukan' ? 'default' : 'ghost'}
+                size='sm'
+                onClick={() => setActiveView('rujukan')}
+                className='h-8 gap-1.5 text-xs font-medium'
+              >
+                <IconShare2 className='h-3.5 w-3.5' />
+                Monitoring Rujukan
+              </Button>
+            </div>
+            <Badge variant='outline' className='hidden sm:flex items-center gap-1'>
+              <IconMapPin className='h-3.5 w-3.5' />
+              {activeView === 'rujukan' ? 'Kabupaten Kuningan' : (process.env.NEXT_PUBLIC_KABUPATEN || 'Kabupaten')}
+            </Badge>
+          </div>
         </div>
+
+        {activeView === 'rujukan' ? (
+          <MonitoringRujukanSection />
+        ) : (
+          <>
 
         {/* Summary Cards */}
         {isLoading ? (
@@ -392,6 +429,16 @@ export default function MonitoringPage() {
                           weight: 2
                         }}
                       >
+                        <Tooltip
+                          direction='top'
+                          offset={[0, -radius]}
+                          opacity={0.95}
+                          permanent={true}
+                        >
+                          <span className='text-xs font-semibold'>
+                            {lokasi.desa} ({total})
+                          </span>
+                        </Tooltip>
                         <Popup>
                           <div className='min-w-[180px]'>
                             <h3 className='mb-2 font-semibold'>
@@ -875,6 +922,8 @@ export default function MonitoringPage() {
             </div>
           </TabsContent>
         </Tabs>
+        </>
+        )}
       </div>
     </PageContainer>
   );
