@@ -206,7 +206,7 @@ export default function MonitoringPage() {
 
   return (
     <PageContainer>
-      <div className='max-w-full min-w-0 space-y-6'>
+      <div className='w-full max-w-full min-w-0 space-y-6 overflow-x-hidden'>
         <DashboardFilter onFilterChange={handleFilterChange} />
 
         <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
@@ -214,7 +214,7 @@ export default function MonitoringPage() {
             <h2 className='text-2xl font-bold tracking-tight'>Monitoring</h2>
             <p className='text-muted-foreground'>
               {activeView === 'rujukan'
-                ? 'Monitoring rujukan faskes vertikal ke rumah sakit di Kabupaten Kuningan'
+                ? 'Monitoring rujukan faskes vertikal ke rumah sakit'
                 : 'Sebaran data pasien dan statistik layanan kesehatan'}
             </p>
           </div>

@@ -163,27 +163,7 @@ export default function MonitoringRujukanSection() {
   }, [startDate, endDate, selectedPuskesmas]);
 
   return (
-    <div className='max-w-full min-w-0 space-y-6 overflow-x-hidden'>
-      {/* Header Banner */}
-      <div className='flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between'>
-        <div className='flex items-center space-x-3'>
-          <div className='flex h-10 w-10 items-center justify-center rounded-xl bg-teal-600 text-white shadow-md shadow-teal-600/20'>
-            <IconActivity className='h-6 w-6' />
-          </div>
-          <div>
-            <h2 className='text-2xl font-bold tracking-tight'>
-              Monitoring Rujukan Vertikal
-            </h2>
-            <p className='text-muted-foreground text-sm'>
-              Sistem Informasi Rujukan Pasien Fasilitas Kesehatan - Kabupaten Kuningan
-            </p>
-          </div>
-        </div>
-        <Badge variant='outline' className='w-fit border-teal-500/30 text-teal-600'>
-          Rujukan Faskes
-        </Badge>
-      </div>
-
+    <div className='w-full max-w-full min-w-0 space-y-6 overflow-hidden'>
       {/* Filter Section */}
       <Card className='border-slate-200/70 shadow-xs'>
         <CardContent className='p-4 md:p-5'>
@@ -251,7 +231,7 @@ export default function MonitoringRujukanSection() {
             </CardContent>
           </Card>
         ) : (
-          <div className='grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5'>
+          <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 w-full min-w-0'>
             {top5Cards.map((card, idx) => (
               <Card
                 key={idx}
@@ -290,7 +270,7 @@ export default function MonitoringRujukanSection() {
       </div>
 
       {/* Cross-tab / Matrix: RS vs Puskesmas */}
-      <Card className='border-slate-200/70 shadow-xs'>
+      <Card className='border-slate-200/70 shadow-xs w-full max-w-full min-w-0 overflow-hidden'>
         <CardHeader className='pb-3'>
           <CardTitle className='text-base font-bold'>
             Distribusi Rujukan (RS vs Puskesmas)
@@ -299,13 +279,13 @@ export default function MonitoringRujukanSection() {
             Matriks penyebaran rujukan dari Puskesmas Kuningan ke Rumah Sakit tujuan
           </p>
         </CardHeader>
-        <CardContent className='p-0'>
+        <CardContent className='p-0 w-full min-w-0 overflow-hidden'>
           {rsRows.length === 0 ? (
             <div className='text-muted-foreground p-8 text-center text-sm'>
               Tidak ada sebaran data rujukan.
             </div>
           ) : (
-            <div className='w-full overflow-x-auto'>
+            <div className='w-full max-w-full min-w-0 overflow-x-auto'>
               <table className='w-full border-collapse text-left text-sm whitespace-nowrap'>
                 <thead>
                   <tr className='bg-muted/50 border-y text-xs'>
