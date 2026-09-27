@@ -1,4 +1,4 @@
-name: Update README Version
+name: Update README
 
 on:
   push:
@@ -10,39 +10,58 @@ permissions:
 
 jobs:
   update-readme:
-    if: "!contains(github.event.head_commit.message, 'chore: update README version')"
+    if: "!contains(github.event.head_commit.message, 'chore: update README') && github.actor != 'github-actions[bot]'"
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Get latest version
-        id: version
-        run: |
-          VERSION=$(git tag --sort=-version:refname | head -n 1)
-
-          if [ -z "$VERSION" ]; then
-            VERSION="dev-${GITHUB_SHA::7}"
-          fi
-
-          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-
       - name: Update README
         run: |
-          sed -i '/^<!-- latest-version -->/d' README.md
-          echo "" >> README.md
-          echo "<!-- latest-version --> Latest Version: ${{ steps.version.outputs.version }}" >> README.md
+          export UPDATE_DATE=$(TZ=Asia/Jakarta date '+%Y-%m-%d %H:%M:%S WIB')
 
-      - name: Commit README
+          python3 - <<'PY'
+          from pathlib import Path
+          import os
+
+          path = Path("README.md")
+          content = path.read_text()
+
+          marker_start = "<!-- AUTO-UPDATE-START -->"
+          marker_end = "<!-- AUTO-UPDATE-END -->"
+
+          date = os.environ["UPDATE_DATE"]
+
+          update = f"""{marker_start}
+## Last Update
+
+**{date}**
+{marker_end}"""
+
+          if marker_start in content and marker_end in content:
+              start = content.index(marker_start)
+              end = content.index(marker_end) + len(marker_end)
+              content = content[:start] + update + content[end:]
+          else:
+              content = content.rstrip() + "\n\n" + update + "\n"
+
+          path.write_text(content)
+          PY
+
+      - name: Commit and Push
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
           git add README.md
 
-          if ! git diff --cached --quiet; then
-            git commit -m "chore: update README version"
-            git push
+          if git diff --cached --quiet; then
+            echo "No changes"
+            exit 0
           fi
+
+          git commit -m "chore: update README timestamp"
+          git push
