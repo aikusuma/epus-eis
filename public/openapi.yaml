@@ -60,7 +60,7 @@ components:
       name: X-Epus-Signature
       in: header
       required: true
-      description: "Signature HMAC. Format: `t=<unix_ts>,v1=<hex_sha256>`"
+      description: 'Signature HMAC. Format: `t=<unix_ts>,v1=<hex_sha256>`'
       schema:
         type: string
         example: t=1700000000,v1=0123abcd...
@@ -68,7 +68,7 @@ components:
       name: Content-Encoding
       in: header
       required: false
-      description: "Opsional untuk payload besar. Gunakan `gzip` bila body di-compress."
+      description: 'Opsional untuk payload besar. Gunakan `gzip` bila body di-compress.'
       schema:
         type: string
         enum: [gzip]
@@ -76,7 +76,7 @@ components:
       name: Authorization
       in: header
       required: false
-      description: "Bearer token. Contoh: `Bearer <token>`"
+      description: 'Bearer token. Contoh: `Bearer <token>`'
       schema:
         type: string
         example: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
@@ -86,7 +86,7 @@ components:
       required: false
       schema:
         type: string
-      description: "ID puskesmas, gunakan `all` untuk semua"
+      description: 'ID puskesmas, gunakan `all` untuk semua'
     Bulan:
       name: bulan
       in: query
@@ -158,7 +158,8 @@ components:
       required: false
       schema:
         type: string
-        enum: [search, top, diagnoses, overall-trend, by-code, trend, monthly-trend]
+        enum:
+          [search, top, diagnoses, overall-trend, by-code, trend, monthly-trend]
     Icd10Id:
       name: icd10Id
       in: query
@@ -443,7 +444,6 @@ components:
           jenis: { type: string }
 
 paths:
-
   /api/auth/login:
     post:
       tags: [Auth]
@@ -849,7 +849,7 @@ paths:
                 summary: Kirim SDM + Obat + Keuangan (lengkap)
                 value:
                   batchId: EPUS-BUMIAYU-2026-02-K1-0001
-                  puskesmasKode: "3329XXXX"
+                  puskesmasKode: '3329XXXX'
                   bulan: 2
                   tahun: 2026
                   tenagaKesehatan:
@@ -880,7 +880,7 @@ paths:
                 summary: Kirim Obat saja (boleh tanpa SDM & Keuangan)
                 value:
                   batchId: EPUS-BUMIAYU-2026-02-K1-OBAT-0001
-                  puskesmasKode: "3329XXXX"
+                  puskesmasKode: '3329XXXX'
                   bulan: 2
                   tahun: 2026
                   stokObat:
@@ -892,7 +892,7 @@ paths:
                 summary: Kirim SDM saja
                 value:
                   batchId: EPUS-BUMIAYU-2026-02-K1-SDM-0001
-                  puskesmasKode: "3329XXXX"
+                  puskesmasKode: '3329XXXX'
                   bulan: 2
                   tahun: 2026
                   tenagaKesehatan:
@@ -903,7 +903,7 @@ paths:
                 summary: Kirim Keuangan saja
                 value:
                   batchId: EPUS-BUMIAYU-2026-02-K1-KEU-0001
-                  puskesmasKode: "3329XXXX"
+                  puskesmasKode: '3329XXXX'
                   bulan: 2
                   tahun: 2026
                   keuangan:
@@ -996,7 +996,7 @@ paths:
                 summary: Kirim ANC + Imunisasi (lengkap)
                 value:
                   batchId: EPUS-BUMIAYU-2026-02-K2-0001
-                  puskesmasKode: "3329XXXX"
+                  puskesmasKode: '3329XXXX'
                   bulan: 2
                   tahun: 2026
                   antenatalCare:
@@ -1020,7 +1020,7 @@ paths:
                 summary: Kirim ANC saja
                 value:
                   batchId: EPUS-BUMIAYU-2026-02-K2-ANC-0001
-                  puskesmasKode: "3329XXXX"
+                  puskesmasKode: '3329XXXX'
                   bulan: 2
                   tahun: 2026
                   antenatalCare:
@@ -1031,7 +1031,7 @@ paths:
                 summary: Kirim Imunisasi saja
                 value:
                   batchId: EPUS-BUMIAYU-2026-02-K2-IMUN-0001
-                  puskesmasKode: "3329XXXX"
+                  puskesmasKode: '3329XXXX'
                   bulan: 2
                   tahun: 2026
                   imunisasi:
@@ -1138,7 +1138,7 @@ paths:
                 summary: Kirim Deteksi Dini + Faktor Risiko + Pemeriksaan Gigi
                 value:
                   batchId: EPUS-BUMIAYU-2026-02-K3-0001
-                  puskesmasKode: "3329XXXX"
+                  puskesmasKode: '3329XXXX'
                   bulan: 2
                   tahun: 2026
                   deteksiDini:
@@ -1168,7 +1168,7 @@ paths:
                 summary: Kirim Pemeriksaan Gigi saja
                 value:
                   batchId: EPUS-BUMIAYU-2026-02-K3-GIGI-0001
-                  puskesmasKode: "3329XXXX"
+                  puskesmasKode: '3329XXXX'
                   bulan: 2
                   tahun: 2026
                   pemeriksaanGigi:
@@ -1253,7 +1253,8 @@ paths:
                   type: array
                   items:
                     type: object
-                    required: [tanggal, icd10Code, diagnosa, jumlahKasus, tingkatBahaya]
+                    required:
+                      [tanggal, icd10Code, diagnosa, jumlahKasus, tingkatBahaya]
                     properties:
                       tanggal: { type: string, format: date }
                       icd10Code: { type: string }
@@ -1270,7 +1271,7 @@ paths:
                 summary: Kirim Top Diagnosa saja (bulanan)
                 value:
                   batchId: EPUS-BUMIAYU-2026-02-K4-TOP-0001
-                  puskesmasKode: "3329XXXX"
+                  puskesmasKode: '3329XXXX'
                   bulan: 2
                   tahun: 2026
                   topDiagnosa:
@@ -1284,7 +1285,7 @@ paths:
                 summary: Kirim Diagnosa Harian saja (harian; replace per tanggal yang dikirim)
                 value:
                   batchId: EPUS-BUMIAYU-2026-02-K4-HARIAN-0001
-                  puskesmasKode: "3329XXXX"
+                  puskesmasKode: '3329XXXX'
                   bulan: 2
                   tahun: 2026
                   diagnosaHarian:
@@ -1384,7 +1385,14 @@ paths:
                   type: array
                   items:
                     type: object
-                    required: [tanggal, jumlahPemeriksaan, hematologi, kimiaKlinik, urinalisis]
+                    required:
+                      [
+                        tanggal,
+                        jumlahPemeriksaan,
+                        hematologi,
+                        kimiaKlinik,
+                        urinalisis
+                      ]
                     properties:
                       tanggal: { type: string, format: date }
                       jumlahPemeriksaan: { type: integer }
@@ -1395,7 +1403,8 @@ paths:
                   type: array
                   items:
                     type: object
-                    required: [tanggal, pasienMasuk, pasienKeluar, bedTerisi, bedTotal]
+                    required:
+                      [tanggal, pasienMasuk, pasienKeluar, bedTerisi, bedTotal]
                     properties:
                       tanggal: { type: string, format: date }
                       pasienMasuk: { type: integer }
@@ -1410,7 +1419,7 @@ paths:
                 summary: Kirim semua modul lintas klaster
                 value:
                   batchId: EPUS-BUMIAYU-2026-02-LK-0001
-                  puskesmasKode: "3329XXXX"
+                  puskesmasKode: '3329XXXX'
                   gawatDarurat:
                     - tanggal: 2026-02-01
                       triaseMerah: 2
@@ -1437,7 +1446,7 @@ paths:
                 summary: Kirim Farmasi saja
                 value:
                   batchId: EPUS-BUMIAYU-2026-02-LK-FARMASI-0001
-                  puskesmasKode: "3329XXXX"
+                  puskesmasKode: '3329XXXX'
                   farmasi:
                     - tanggal: 2026-02-01
                       jumlahResep: 140

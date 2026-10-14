@@ -34,32 +34,38 @@ Executive Information System (EIS) untuk Dinas Kesehatan Kabupaten Brebes. Siste
 1. Clone the repository
 
 2. Copy environment file:
+
    ```bash
    cp env.example.txt .env.local
    ```
 
 3. Start databases with Docker:
+
    ```bash
    docker-compose up -d
    ```
 
 4. Install dependencies:
+
    ```bash
    bun install
    ```
 
 5. Generate Prisma client and push schema:
+
    ```bash
    bun db:generate
    bun db:push
    ```
 
 6. Seed initial data:
+
    ```bash
    bun db:seed
    ```
 
 7. Run the development server:
+
    ```bash
    bun dev
    ```
@@ -102,31 +108,23 @@ src/
 ## API Endpoints
 
 ### Authentication
+
 - `POST /api/auth/login` - Login
 - `POST /api/auth/logout` - Logout
 - `GET /api/auth/me` - Get current user
 
 ## User Roles
 
-| Role | Description | Access |
-|------|-------------|--------|
-| Kepala Dinkes | Head of Health Department | All puskesmas, all data |
-| Kabid | Department Head | All puskesmas, aggregated data |
-| Subkor | Sub-coordinator | All puskesmas, aggregated data |
-| Kepala Puskesmas | Puskesmas Head | Own puskesmas only |
-| Staf | Staff | Own puskesmas, limited access |
+| Role             | Description               | Access                         |
+| ---------------- | ------------------------- | ------------------------------ |
+| Kepala Dinkes    | Head of Health Department | All puskesmas, all data        |
+| Kabid            | Department Head           | All puskesmas, aggregated data |
+| Subkor           | Sub-coordinator           | All puskesmas, aggregated data |
+| Kepala Puskesmas | Puskesmas Head            | Own puskesmas only             |
+| Staf             | Staff                     | Own puskesmas, limited access  |
 
 ## License
 
 MIT
-
-
-
-
-
-
-
-
-
 
 <!-- latest-version --> Latest Version: dev-2c7cea6

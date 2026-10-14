@@ -116,6 +116,16 @@ export function DashboardFilter({
   const defaultBulan = 2; // February
   const defaultTahun = 2026;
 
+  const [filters, setFilters] = useState<FilterValues>({
+    dateRange: defaultRange,
+    puskesmasId: serverUserContext?.isLocked
+      ? serverUserContext.puskesmasId || 'all'
+      : 'all',
+    jenisLayanan: 'puskesmas',
+    bulan: defaultBulan,
+    tahun: defaultTahun
+  });
+
   // Only fetch client-side if no server context provided
   useEffect(() => {
     if (serverUserContext) return; // Already have server context
@@ -147,16 +157,6 @@ export function DashboardFilter({
     }
     fetchUser();
   }, [serverUserContext]);
-
-  const [filters, setFilters] = useState<FilterValues>({
-    dateRange: defaultRange,
-    puskesmasId: serverUserContext?.isLocked
-      ? serverUserContext.puskesmasId || 'all'
-      : 'all',
-    jenisLayanan: 'puskesmas',
-    bulan: defaultBulan,
-    tahun: defaultTahun
-  });
 
   // Fetch puskesmas list
   useEffect(() => {
